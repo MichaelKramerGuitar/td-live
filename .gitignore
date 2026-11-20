@@ -1,0 +1,19 @@
+# TouchDesigner autosaves/backups (TDlive.1.toe, TDlive.2.toe ...) and crash files
+*.[0-9]*.toe
+Backup/
+CrashAutoSave.*
+*.dmp
+
+# Media (large; renders go to GitHub Releases)
+Recordings/
+Takes/
+*.mov
+*.mp4
+*.wav
+
+# Private material that stays local (e.g. notation illustrations)
+private/
+
+__pycache__/
+.pytest_cache/
+*.pyc
