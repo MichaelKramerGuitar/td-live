@@ -2,7 +2,8 @@
 
 ## Using it
 
-1. Open `TDlive.toe`. On `/project1/show`, pulse **Open TDlive Window** (or open it from the parameters).
+1. Open `TDlive.toe`: the **TDlive window opens by itself** after a moment. If you close it, select
+   `/project1/show`, press **P** for its parameters and click **Open TDlive Window**.
 2. Play and watch the green **input meter** above the buttons. Set `config` › Devices › **Input Gain** so normal
    playing sits around the middle and the hardest attacks don't turn it red.
 3. **Rehearse**: countdown, then live, no file. **● Record**: countdown, then a take in `Takes/`.

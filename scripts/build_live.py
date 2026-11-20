@@ -275,6 +275,7 @@ acts.par.onpulse = True
 acts.par.valuechange = False
 tick = synced(SH, executeDAT, 'tick', 'modules/show/tick.py', 0, -300)
 tick.par.framestart = True
+tick.par.start = True                                   # onStart: open the TDlive window
 kb = ensure(SH, keyboardinCHOP, 'keyboard', 200, -450)
 kb.par.keys = 'space esc r h'
 keys = synced(SH, chopexecuteDAT, 'keys', 'modules/show/keys.py', 400, -450)
