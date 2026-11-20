@@ -4,6 +4,7 @@ A TouchDesigner rig for live solo guitar with visuals that listen: Michael Krame
 three-circle song-form notation, and charts that let the visuals know where the tune is going.
 
 - `CONTEXT.md` — purpose, motives, roadmap, decisions (start here)
+- `docs/LIVE_RIG.md` — using and rebuilding the live rig (M1)
 - `docs/NOTATION.md` — the three-circle notation and how it maps to chart files
 - `synesthesia/palette.yaml` — the colour of every spelled pitch, in Michael's words
 - `charts/` — the book (`schema/chart.schema.json`, one YAML file per tune)

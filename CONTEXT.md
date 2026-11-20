@@ -45,7 +45,7 @@ most useful booking material.
 | Milestone | What | Done when |
 |---|---|---|
 | **M0 bootstrap** | repo, palette, chart schema, Gangster Flick sketch, tools + tests | ✅ this commit |
-| **M1 skeleton** | Focusrite in (Audio Device In), webcam (Video Device In), Record / Rehearse with countdown, Space = start/stop, preview, one reactive mode, the bus contract from td-experiment | Michael can rehearse and record a take |
+| **M1 skeleton** | Focusrite in (ASIO), webcam, Record / Rehearse with countdown, Space = start/stop, TDlive window (preview + buttons + input meter), modes Mirror + Ripples, the bus (`docs/LIVE_RIG.md`) | Michael can rehearse and record a take — 🟡 built 2026-11-20; camera blocked, needs a real-playing check |
 | **M2 palette live** | palette module in TD; pitch-class (chroma) analysis of the guitar; a root-coloured mode | playing a chord paints its root's colour |
 | **M3 chart book + form clock** | load a chart in TD; count-off sets tempo; bar/section clock; one original made `playable` | the visual knows which bar and chord it's on |
 | **M4 the circles** | three-circle notation drawn live from chart + audio | "playing duo" |
@@ -55,7 +55,7 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
 
 ## 5. Decisions and open questions
 
-- 2026-11-20: solo guitar first; audio straight from the Focusrite. (Check: can Ableton and TD share the
+- 2026-11-20: solo guitar first; audio straight from the Focusrite (USB ASIO, inputs 1+2 by default). (Check: can Ableton and TD share the
   interface at the same time on Windows? Only if needed.)
 - 2026-11-20: Michael's Gangster Flick illustration is kept out of this public repo (his artwork; colours there
   are layer colours, not synesthesia).
@@ -65,3 +65,7 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
 
 - **2026-11-20 — session 1.** Bootstrap (M0): palette, chart schema, Gangster Flick sketch, chartlib + tests,
   palette swatch render.
+- **2026-11-20 — session 1b.** Local folder linked to GitHub. M1 skeleton built by `scripts/build_live.py`
+  (logic in `modules/show/`): Focusrite USB ASIO inputs 1+2, C920 webcam (stuck "Initializing" - in use by
+  another app or blocked by Windows camera privacy?), Rehearse/Record with countdown, Space/Esc/R/H, take
+  naming, TDlive window. Test take OK (1280x720 60 fps MJPEG + stereo audio). Palette: Ab tuned redder.
