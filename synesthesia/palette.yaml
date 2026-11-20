@@ -3,7 +3,7 @@
 # The `description` fields are Michael's own words and are the source of truth.
 # The `start` colours are only a representational starting point to tune BY EYE in TouchDesigner
 # ("does this feel like D?"). Michael: "Every time I try to map out the exact hex values it's never right."
-# Edit `start` freely; never edit `description` without Michael.
+# Edit `start` freely; never edit `description` without Michael. `tuning` keeps Michael's feedback on swatches.
 #
 # NOTE: these colours are NOT the colours in the notation illustrations (charts/). Those are layer colours only.
 
@@ -34,7 +34,8 @@ colors:
   Gb: { description: "Rose with an accent on the e like the wine",                        start: "#F2B8B1" }
   G:  { description: "Red like a Roma Tomato (more yellow in it that \"A\")",             start: "#D23B1F" }
   G#: { description: "Magenta but leaning red rather than purple",                        start: "#C4195A" }
-  Ab: { description: "Very Similar to Rose like the wine but with more orangy/peachy warmth", start: "#F5B49A" }
+  Ab: { description: "Very Similar to Rose like the wine but with more orangy/peachy warmth", start: "#E8806F",
+        tuning: ["2026-11-20 Michael: first swatch (#F5B49A) - Ab is a little more red than rose"] }
   A:  { description: "Rose Red (substantially darker than \"G\")",                       start: "#9C1C33" }
   A#: { description: "Very Deep and Dark Crimson, the darkest of the Reds",               start: "#560B16" }
   Bb: { description: "Peach that's leaning Orange rather than Pink",                      start: "#F6A06A" }

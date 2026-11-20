@@ -1,7 +1,6 @@
 # Gangster Flick — Michael Kramer
 # Transcribed from Michael's Illustrator drawing of the tune in his three-circle notation (kept privately,
 # not in this public repo). Layer colours in that drawing are NOT synesthesia colours.
-# Anything marked CONFIRM was read off the drawing by Claude, not stated by Michael.
 
 schema: tdlive-chart/0.1
 id: gangster_flick
@@ -13,9 +12,8 @@ tempo: { bpm: null }
 
 rhythm:                 # outer circle (orange in the drawing)
   meter: { beats: 5, unit: 4 }          # pentagon = 5/4
-  # Accent / hemiola nodes on the pentagon. CONFIRM: read from their angle around the circle -
-  # one on beat 1 (top), then roughly 1/4 past beat 2, halfway between 3 and 4, 1/4 past beat 4.
-  accents: [1, 2.25, 3.5, 4.25]
+  # Accent / hemiola nodes on the pentagon (confirmed by Michael): 1, the 'and' of 2, the 'and' of 3, 4.
+  accents: [1, 2.5, 3.5, 4]
   feel: null
 
 pitch:                  # middle circle (blue): circle of fifths, C at top
@@ -32,9 +30,9 @@ pitch:                  # middle circle (blue): circle of fifths, C at top
 
 form:                   # inner circle (red)
   sections:
-    - { name: A, shape: 8, hashes: 3, note: "octagon, 3 hashes: 8 bars, played 4 times" }
+    - { name: A, shape: 8, hashes: 3, note: "octagon, 3 hashes: 8 bars, played 4 times (confirmed)" }
     - { name: B, shape: 4, multiplier: 3, note: "square x3 zig-zag: 12 bars, not repeated" }
-    - { name: C, shape: 4, multiplier: 5, hashes: 1, note: "square x5 zig-zag: 20 bars, repeated once" }
+    - { name: C, shape: 4, multiplier: 5, hashes: 1, note: "square x5 zig-zag: 20 bars, repeated once = played twice (confirmed)" }
   # Total, derived by tools/chartlib.py: 32 + 12 + 40 = 84 bars.
 
 changes: {}             # to make it `playable`: bars of [chord symbol, beats] per section
