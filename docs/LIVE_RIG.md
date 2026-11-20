@@ -59,6 +59,15 @@ swappable (same idea as td-experiment's bus). M2 adds pitch channels (chroma) he
 
 These DATs are synced to the files: edit in VS Code and TouchDesigner re-reads them.
 
+### Camera notes
+
+- The Logitech C920 runs at **640x480** for now. Its HD modes (1280x720 / 1920x1080 at 30 fps) stall at
+  "Initializing..." in this TD build, and switching back to 640x480 brings it back. 640x480 is soft in 16:9 and
+  quite soft in 9:16 (it's cropped). To try later: Media Foundation driver, other USB port (not a hub), or
+  OBS as the capture app feeding TD.
+- If the camera ever sticks at "Initializing...", set Signal Format back to 640x480, or delete `sources/camera`,
+  add a fresh Video Device In TOP named `camera` by hand, pick the C920 and connect it to `camera_or_black`.
+
 ### Gotchas carried over from td-experiment
 
 - The recorder opens its file the moment `record` turns on, so `logic._record` sets the name first and starts a

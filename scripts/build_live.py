@@ -94,16 +94,18 @@ gtr.par.chanop = 'avg' if 'avg' in gtr.par.chanop.menuNames else gtr.par.chanop.
 aout = ensure(S_, nullCHOP, 'audio_out', 200, -150)     # what goes into a take's soundtrack
 aout.inputConnectors[0].connect(ain)
 
-cam_in = ensure(S_, videodeviceinTOP, 'camera', 0, -400)
-cam_in.par.library = 'directshow'
-cdev = menu_name_for_label(cam_in.par.device, C.par.Camera.eval()) if C.par.Camera.eval() else None
-if cdev:
-    cam_in.par.device = cdev
+cam_in = S_.op('camera')
+if cam_in is None:                                      # never replace a camera that's already working
+    cam_in = ensure(S_, videodeviceinTOP, 'camera', 0, -400)
+    cam_in.par.library = 'directshow'
+    cdev = menu_name_for_label(cam_in.par.device, C.par.Camera.eval()) if C.par.Camera.eval() else None
+    if cdev:
+        cam_in.par.device = cdev
+    # The C920's HD modes (its MJPEG formats) stall at "Initializing..." in TD 2025.32820 here; 640x480 works.
+    if 'f640x480p-30.00hz' in cam_in.par.signalformat.menuNames:
+        cam_in.par.signalformat = 'f640x480p-30.00hz'
 REPORT['camera_choices'] = list(cam_in.par.device.menuLabels)
-for fmt in ('f1920x1080p-30.00hz', 'f1280x720p-30.00hz'):   # HD at 30 fps; portrait crops the centre
-    if fmt in cam_in.par.signalformat.menuNames:
-        cam_in.par.signalformat = fmt
-        break
+REPORT['camera'] = [cam_in.width, cam_in.height, cam_in.warnings()]
 nocam = ensure(S_, constantTOP, 'no_camera', 0, -550)
 nocam.par.colorr, nocam.par.colorg, nocam.par.colorb = 0.0, 0.0, 0.0
 nocam.par.resolutionw, nocam.par.resolutionh = 1280, 720
