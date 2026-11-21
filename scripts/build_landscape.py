@@ -30,6 +30,8 @@ if not has(L, 'Flip'):
     pg3.appendFloat('Mereact', label='Follows Playing (0 = always on, 1 = only when playing)')
     pg3.appendFloat('Mefade', label='Fade After Playing (s)')
     pg3.appendToggle('Metint', label='Tint With Chord Root Colour')
+    pg3.appendFloat('Mecut', label='Cut The Room (black level)')
+    pg3.appendFloat('Mefocus', label='Focus (vignette: smaller = only the centre)')
     pg2 = page(L, 'Camera')
     pg2.appendFloat('Camheight', label='Eye Height')
     pg2.appendFloat('Camback', label='Eye Behind Bridge')
@@ -37,7 +39,7 @@ if not has(L, 'Flip'):
     pg2.appendFloat('Fov', label='Field Of View')
     for k, v in (('Depth', 0.9), ('Spread', 1.0), ('Contrast', 2.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
                  ('Planetmin', 0.6), ('Planetclarity', 0.55), ('Planetradiance', 0.5),
-                 ('Meamount', 0.55), ('Mereact', 0.85), ('Mefade', 1.2), ('Metint', True), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
+                 ('Meamount', 0.5), ('Mereact', 0.85), ('Mefade', 1.2), ('Metint', True), ('Mecut', 0.32), ('Mefocus', 0.6), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
         L.par[k] = v
         L.par[k].default = v
 
@@ -239,8 +241,8 @@ gb.inputConnectors[0].connect(mmono)
 gb.par.size = 6
 gl = ensure(L, levelTOP, 'me_ghost', 1800, -700)
 gl.inputConnectors[0].connect(gb)
-gl.par.gamma1 = 1.6
-gl.par.contrast = 1.3
+gl.par.blacklevel.expr = 'parent().par.Mecut'
+gl.par.contrast = 1.4
 # outline: traced edges
 ed = ensure(L, edgeTOP, 'me_edge', 1650, -850)
 ed.inputConnectors[0].connect(mmono)
@@ -250,11 +252,12 @@ eb.par.size = 2
 eg = ensure(L, levelTOP, 'me_outline_gain', 1950, -850)
 eg.inputConnectors[0].connect(eb)
 eg.par.brightness1 = 3.0
+eg.par.blacklevel.expr = 'parent().par.Mecut * 0.5'
 # negative: inverted luminance, darkest parts glow
 ng = ensure(L, levelTOP, 'me_negative', 1650, -1000)
 ng.inputConnectors[0].connect(gb)
 ng.par.invert = 1.0
-ng.par.gamma1 = 2.2
+ng.par.blacklevel.expr = 'parent().par.Mecut + 0.15'
 msw = ensure(L, switchTOP, 'me_style', 2100, -850)
 msw.inputConnectors[0].connect(gl)
 msw.inputConnectors[1].connect(eg)
@@ -270,8 +273,21 @@ mt.inputConnectors[0].connect(msw)
 mt.inputConnectors[1].connect(tint)
 mt.par.operand = 'multiply'
 mt.par.size = 'input1' if 'input1' in mt.par.size.menuNames else mt.par.size.eval()
-me = ensure(L, levelTOP, 'me', 2400, -900)
-me.inputConnectors[0].connect(mt)
+vig = ensure(L, rampTOP, 'me_vignette', 2250, -1050)       # centre-weighted: the room fades toward the edges
+vig.par.type = 'radial'
+vig.par.outputresolution = 'custom'
+vig.par.resolutionw.expr, vig.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
+vig.par.period.expr = 'parent().par.Mefocus * 1.4'
+vig.par.extendright = 'hold' if 'hold' in vig.par.extendright.menuNames else vig.par.extendright.eval()
+vigi = ensure(L, levelTOP, 'me_vignette_inv', 2400, -1050)
+vigi.inputConnectors[0].connect(vig)
+vigi.par.invert = 1.0
+mv = ensure(L, compositeTOP, 'me_focused', 2400, -900)
+mv.inputConnectors[0].connect(mt)
+mv.inputConnectors[1].connect(vigi)
+mv.par.operand = 'multiply'
+me = ensure(L, levelTOP, 'me', 2550, -900)
+me.inputConnectors[0].connect(mv)
 me.par.brightness1.expr = ("parent().par.Meamount * (1 - parent().par.Mereact + parent().par.Mereact * "
                            "min(1, op('energy')['level'] * 1.6))")
 
