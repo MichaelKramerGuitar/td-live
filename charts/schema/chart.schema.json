@@ -1,10 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "tdlive-chart/0.1",
+  "$id": "tdlive-chart/0.2",
   "title": "TDlive chart (Michael Kramer's three-concentric-circle notation, as data)",
   "description": "One tune. The three top-level blocks mirror the three circles: rhythm = outer circle, pitch = middle circle, form = inner circle. `changes` is the optional bar-by-bar timeline the live system follows. See docs/NOTATION.md.",
   "type": "object",
-  "required": ["schema", "id", "title", "rhythm", "pitch", "form"],
+  "required": [
+    "schema",
+    "id",
+    "title",
+    "rhythm",
+    "pitch",
+    "form"
+  ],
   "additionalProperties": false,
   "$defs": {
     "spelled": {
@@ -14,94 +21,248 @@
     }
   },
   "properties": {
-    "schema": { "const": "tdlive-chart/0.1" },
-    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-    "title": { "type": "string" },
-    "composer": { "type": "string" },
-    "status": { "enum": ["sketch", "playable"], "description": "sketch = notation only; playable = has `changes` complete enough to follow live." },
-    "key": { "type": ["string", "null"], "description": "e.g. 'Ab minor'. Optional." },
-    "tempo": {
-      "type": "object", "additionalProperties": false,
-      "properties": { "bpm": { "type": ["number", "null"], "exclusiveMinimum": 0 } }
+    "schema": {
+      "enum": [
+        "tdlive-chart/0.1",
+        "tdlive-chart/0.2"
+      ]
     },
-    "notes": { "type": "string" },
-
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "composer": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "sketch",
+        "playable"
+      ],
+      "description": "sketch = notation only; playable = has `changes` complete enough to follow live."
+    },
+    "key": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "e.g. 'Ab minor'. Optional."
+    },
+    "changes_notation": {
+      "enum": [
+        "absolute",
+        "roman"
+      ],
+      "default": "absolute",
+      "description": "absolute = chord symbols ('Ab7'); roman = numerals relative to the MAJOR scale of the key ('bVI7'), spelled when a key is chosen (default_key, or picked at rehearsal/performance)."
+    },
+    "default_key": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Key used when none is picked live, e.g. 'F' or 'Bb'. Spelled like a key signature."
+    },
+    "tempo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bpm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
     "rhythm": {
       "description": "OUTER circle: pulse, feel, emphases. The inner polygon has one side per beat of the bar.",
-      "type": "object", "required": ["meter"], "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "meter"
+      ],
+      "additionalProperties": false,
       "properties": {
         "meter": {
-          "type": "object", "required": ["beats", "unit"], "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "beats",
+            "unit"
+          ],
+          "additionalProperties": false,
           "properties": {
-            "beats": { "type": "integer", "minimum": 1, "description": "Polygon sides (5 = pentagon = 5/4)." },
-            "unit": { "type": "integer", "enum": [1, 2, 4, 8, 16] }
+            "beats": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Polygon sides (5 = pentagon = 5/4)."
+            },
+            "unit": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                4,
+                8,
+                16
+              ]
+            }
           }
         },
         "accents": {
           "description": "Emphasis nodes ('balls') on the polygon: 1-based beat positions; fractions mark off-beats (2.5 = the 'and' of 2).",
-          "type": "array", "items": { "type": "number", "minimum": 1 }
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 1
+          }
         },
-        "feel": { "type": ["string", "null"] }
+        "feel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
-
     "pitch": {
       "description": "MIDDLE circle: the circle of fifths (C at the top, clockwise G, D, A ...).",
-      "type": "object", "additionalProperties": false,
+      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "melodic_nodes": {
           "description": "Highlighted pitch nodes on the circle (the melody's important notes).",
-          "type": "array", "items": { "$ref": "#/$defs/spelled" }
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spelled"
+          }
         },
         "harmonies": {
           "description": "Harmony circles. Inside the middle circle = minor, outside = major. Each is itself a circle of fifths; the polygon inside it shows the chord's interval structure.",
           "type": "array",
           "items": {
-            "type": "object", "additionalProperties": false,
+            "type": "object",
+            "additionalProperties": false,
             "properties": {
-              "root": { "oneOf": [{ "$ref": "#/$defs/spelled" }, { "type": "null" }] },
-              "quality": { "enum": ["major", "minor"] },
-              "tones": { "description": "Chord tones as spelled pitches, root first (the polygon's corners).", "type": "array", "items": { "$ref": "#/$defs/spelled" } },
-              "symbol": { "type": ["string", "null"], "description": "Optional lead-sheet symbol, e.g. 'Abm9'." },
-              "note": { "type": "string" }
+              "root": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/spelled"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "quality": {
+                "enum": [
+                  "major",
+                  "minor"
+                ]
+              },
+              "tones": {
+                "description": "Chord tones as spelled pitches, root first (the polygon's corners).",
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/spelled"
+                }
+              },
+              "symbol": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Optional lead-sheet symbol, e.g. 'Abm9'."
+              },
+              "note": {
+                "type": "string"
+              }
             }
           }
         }
       }
     },
-
     "form": {
       "description": "INNER circle: form as groupings of bars. Shape sides x zig-zag multiplier = bars; hashes = repeats.",
-      "type": "object", "required": ["sections"], "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "sections"
+      ],
+      "additionalProperties": false,
       "properties": {
         "sections": {
-          "type": "array", "minItems": 1,
+          "type": "array",
+          "minItems": 1,
           "items": {
-            "type": "object", "required": ["name", "shape"], "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "name",
+              "shape"
+            ],
+            "additionalProperties": false,
             "properties": {
-              "name": { "type": "string" },
-              "shape": { "type": "integer", "minimum": 1, "description": "Sides of the shape = bars in the grouping (square = 4, octagon = 8)." },
-              "multiplier": { "type": "integer", "minimum": 1, "default": 1, "description": "Zig-zag inside the shape: multiply the grouping (square with a 3-stroke zig-zag = 12 bars)." },
-              "hashes": { "type": "integer", "minimum": 0, "default": 0, "description": "Hash marks = times the section is repeated. Played (hashes + 1) times." },
-              "note": { "type": "string" }
+              "name": {
+                "type": "string"
+              },
+              "shape": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Sides of the shape = bars in the grouping (square = 4, octagon = 8)."
+              },
+              "multiplier": {
+                "type": "integer",
+                "minimum": 1,
+                "default": 1,
+                "description": "Zig-zag inside the shape: multiply the grouping (square with a 3-stroke zig-zag = 12 bars)."
+              },
+              "hashes": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "Hash marks = times the section is repeated. Played (hashes + 1) times."
+              },
+              "note": {
+                "type": "string"
+              }
             }
           }
         },
         "order": {
           "description": "Optional explicit play order by section name (default: each section in turn, repeats played back to back).",
-          "type": "array", "items": { "type": "string" }
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "changes": {
-      "description": "Optional timeline for the live system: per section, a list of bars; each bar is a list of chords as [symbol, beats]. Chord roots must be spelled (they choose the colour).",
+      "description": "Optional timeline for the live system: per section, a list of bars; each bar is a list of chords as [symbol, beats]. Chord roots must be spelled (they choose the colour). With changes_notation 'roman', symbols are numerals (I7, ii-7, #IVo7, bVI7).",
       "type": "object",
       "additionalProperties": {
         "type": "array",
         "items": {
           "type": "array",
-          "items": { "type": "array", "prefixItems": [{ "type": "string" }, { "type": "number", "exclusiveMinimum": 0 }], "minItems": 2, "maxItems": 2 }
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
         }
       }
     }

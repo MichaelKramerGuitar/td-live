@@ -2,7 +2,7 @@
 # Transcribed from Michael's Illustrator drawing of the tune in his three-circle notation (kept privately,
 # not in this public repo). Layer colours in that drawing are NOT synesthesia colours.
 
-schema: tdlive-chart/0.1
+schema: tdlive-chart/0.2
 id: gangster_flick
 title: Gangster Flick
 composer: Michael Kramer

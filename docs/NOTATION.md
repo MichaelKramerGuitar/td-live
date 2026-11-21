@@ -13,6 +13,18 @@ memory aid, and a way of thinking about form and composition. TDlive stores the 
 The live system also needs to know **which chord is sounding in which bar**: that's `changes`, the one part that
 isn't in the drawing. A chart without it is a `sketch`; with it, it's `playable`.
 
+## Key-free charts (Roman numerals)
+
+A chart with `changes_notation: roman` writes its changes relative to the key (`I7`, `ii-7`, `#IVo7`, `bVI7`),
+always relative to the **major** scale (so in a minor key: `i-7`, `bIIImaj7`). The key is picked at
+rehearsal/performance time (or `default_key`), and `tools/harmony.py` spells every chord and chord-scale in that
+key with **letter arithmetic**: `bVI` in C is Ab (never G#), the seventh of a diminished chord is a double flat
+when the harmony says so. Keys are offered as key signatures (C, G, D, A, E, B, F#, C#, F, Bb, Eb, Ab, Db, Gb,
+Cb), so choosing Db rather than C# is a musical choice that also chooses the colours.
+
+First key-free charts: `charts/blues_jazz.yaml` (12-bar jazz blues, default F) and
+`charts/rhythm_changes.yaml` (AABA, default Bb).
+
 ## Why spelling is stored
 
 Chord roots and melodic nodes are stored **spelled** (`Db`, not `C#` or a number). The palette
@@ -37,5 +49,6 @@ circles (roots still to fill in); form A = 8 bars × 4, B = 12 bars, C = 20 bars
 ```
 python tools/check_book.py        # validate every chart + the palette, print each chart's form
 python tools/render_palette.py    # docs/img/palette.png: starting colours on the circle of fifths
+python tools/render_fretboard.py F I7 '#IVo7' ii-7   # docs/img/fretboard_F.png: chord-scales on the neck
 python -m pytest tests            # the musical rules (spelling, circle of fifths, form arithmetic)
 ```

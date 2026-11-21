@@ -1,0 +1,43 @@
+# Jazz blues - the common 12-bar jazz version (Claude's setup; Michael to correct).
+# Key-free: numerals are spelled when a key is picked (default F).
+schema: tdlive-chart/0.2
+id: blues_jazz
+title: Blues (jazz)
+composer: traditional
+status: playable
+changes_notation: roman
+default_key: F
+tempo: { bpm: 120 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []
+  harmonies:
+    - { quality: major, symbol: I7 }
+    - { quality: major, symbol: IV7 }
+    - { quality: major, symbol: VI7 }
+    - { quality: minor, symbol: ii-7 }
+    - { quality: major, symbol: V7 }
+
+form:
+  sections:
+    - { name: chorus, shape: 4, multiplier: 3, note: "square x3 = 12 bars; repeats as many choruses as you play" }
+
+changes:
+  chorus:
+    - [[I7, 4]]
+    - [[IV7, 4]]
+    - [[I7, 4]]
+    - [[v-7, 2], [I7, 2]]
+    - [[IV7, 4]]
+    - [["#IVo7", 4]]
+    - [[I7, 4]]
+    - [[VI7, 4]]
+    - [[ii-7, 4]]
+    - [[V7, 4]]
+    - [[I7, 2], [VI7, 2]]
+    - [[ii-7, 2], [V7, 2]]

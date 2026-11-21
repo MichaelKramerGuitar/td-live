@@ -1,0 +1,63 @@
+# Rhythm changes - a common jazz version of the AABA form (Claude's setup; Michael to correct).
+# Key-free: spelled when a key is picked (default Bb, the traditional key).
+schema: tdlive-chart/0.2
+id: rhythm_changes
+title: Rhythm Changes
+composer: traditional (after Gershwin, "I Got Rhythm")
+status: playable
+changes_notation: roman
+default_key: Bb
+tempo: { bpm: 180 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []
+  harmonies:
+    - { quality: major, symbol: Imaj7 }
+    - { quality: minor, symbol: vi-7 }
+    - { quality: minor, symbol: ii-7 }
+    - { quality: major, symbol: V7 }
+    - { quality: major, symbol: III7 }
+    - { quality: major, symbol: VI7 }
+    - { quality: major, symbol: II7 }
+
+form:
+  sections:
+    - { name: A1, shape: 8 }
+    - { name: A2, shape: 8 }
+    - { name: B, shape: 8, note: "bridge: dominant chain III7 VI7 II7 V7, two bars each" }
+    - { name: A3, shape: 8 }
+
+changes:
+  A1:
+    - [[Imaj7, 2], [vi-7, 2]]
+    - [[ii-7, 2], [V7, 2]]
+    - [[iii-7, 2], [VI7, 2]]
+    - [[ii-7, 2], [V7, 2]]
+    - [[v-7, 2], [I7, 2]]
+    - [[IV7, 2], ["#IVo7", 2]]
+    - [[iii-7, 2], [VI7, 2]]
+    - [[ii-7, 2], [V7, 2]]
+  A2: &A_end
+    - [[Imaj7, 2], [vi-7, 2]]
+    - [[ii-7, 2], [V7, 2]]
+    - [[iii-7, 2], [VI7, 2]]
+    - [[ii-7, 2], [V7, 2]]
+    - [[v-7, 2], [I7, 2]]
+    - [[IV7, 2], ["#IVo7", 2]]
+    - [[ii-7, 2], [V7, 2]]
+    - [[I6, 4]]
+  B:
+    - [[III7, 4]]
+    - [[III7, 4]]
+    - [[VI7, 4]]
+    - [[VI7, 4]]
+    - [[II7, 4]]
+    - [[II7, 4]]
+    - [[V7, 4]]
+    - [[V7, 4]]
+  A3: *A_end

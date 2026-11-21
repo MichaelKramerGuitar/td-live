@@ -16,6 +16,11 @@ import re
 
 import yaml
 
+try:
+    from . import harmony  # noqa: F401  (package import)
+except ImportError:
+    import harmony
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA_PATH = os.path.join(ROOT, 'charts', 'schema', 'chart.schema.json')
 PALETTE_PATH = os.path.join(ROOT, 'synesthesia', 'palette.yaml')
@@ -76,7 +81,24 @@ def color_for(spelled, palette):
     fb = palette.get('fallback', {}).get(s)
     if fb and fb in cols:
         return cols[fb]['start']
-    raise KeyError('no colour (or fallback) for %s' % s)
+    return cols[enharmonic_fallback(s)]['start']
+
+
+def enharmonic_fallback(s):
+    """A spelling with no colour of its own (e.g. Bbb, F##): the natural with the same sound if there is
+    one, otherwise the single sharp/flat in the same direction (Fbb -> Eb, C## -> D). Michael hasn't given
+    these colours yet (palette open_questions), so this is a stand-in."""
+    letter, acc = parse_spelled(s)
+    p = pitch_class(s)
+    for n in _NATURAL_PC:
+        if _NATURAL_PC[n] == p:
+            return n
+    flat = (acc or '').startswith('b')
+    for n in _NATURAL_PC:
+        cand = n + ('b' if flat else '#')
+        if pitch_class(cand) == p:
+            return cand
+    raise KeyError('no colour for %s' % s)
 
 
 def hex_to_rgb(h):
@@ -124,6 +146,9 @@ def check_chart(chart):
         if n not in names:
             out.append('form/order: unknown section %r' % n)
     bars_by_name = {s['name']: section_bars(s) for s in chart['form']['sections']}
+    roman = chart.get('changes_notation') == 'roman'
+    if roman and chart.get('default_key') and chart['default_key'] not in harmony.KEYS:
+        out.append('default_key %r is not one of %s' % (chart['default_key'], ', '.join(harmony.KEYS)))
     for name, bars in (chart.get('changes') or {}).items():
         if name not in bars_by_name:
             out.append('changes: unknown section %r' % name)
@@ -136,7 +161,10 @@ def check_chart(chart):
                 out.append('changes/%s bar %d: chords add up to %s beats, meter has %d' % (name, i + 1, total, beats))
             for sym, _ in bar:
                 try:
-                    chord_root(sym)
+                    if roman:
+                        harmony.chord(sym, chart.get('default_key') or 'C')
+                    else:
+                        chord_root(sym)
                 except ValueError as e:
                     out.append('changes/%s bar %d: %s' % (name, i + 1, e))
     if chart.get('status') == 'playable' and not chart.get('changes'):
@@ -172,6 +200,8 @@ def describe(chart):
     for s in chart['form']['sections']:
         plays = s.get('hashes', 0) + 1
         lines.append('  %-3s %3d bars x %d = %d' % (s['name'], section_bars(s), plays, section_bars(s) * plays))
+    if chart.get('changes_notation') == 'roman':
+        lines.append('  key-free (roman numerals), default key %s' % chart.get('default_key'))
     nodes = chart['pitch'].get('melodic_nodes', [])
     if nodes:
         lines.append('  melodic nodes: ' + ', '.join(nodes))
