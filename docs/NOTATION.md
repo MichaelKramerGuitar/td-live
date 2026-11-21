@@ -25,6 +25,16 @@ Cb), so choosing Db rather than C# is a musical choice that also chooses the col
 First key-free charts: `charts/blues_jazz.yaml` (12-bar jazz blues, default F) and
 `charts/rhythm_changes.yaml` (AABA, default Bb).
 
+### Overrides and variants
+
+- **Per-chord chord-scale:** `[VI7, 4, {scale: half_whole}]` instead of `[VI7, 4]`. Scales: ionian, lydian,
+  mixolydian, dorian, aeolian, phrygian, locrian, melodic_minor, lydian_dominant, altered, diminished,
+  half_whole. Defaults by quality: 7 -> mixolydian, -7 -> dorian, maj7/6 -> ionian, ø7 -> locrian,
+  o7 -> diminished (whole-half), -6 -> melodic minor, 7alt -> altered.
+- **Variants (inheritance):** `extends: blues_jazz` inherits a whole chart; any top-level field replaces the
+  parent's, and `changes_patch: {chorus: {4: [[I7, 4]]}}` replaces single bars. Example:
+  `charts/blues_basic.yaml` (the 3-chord blues in 7 lines).
+
 ## Why spelling is stored
 
 Chord roots and melodic nodes are stored **spelled** (`Db`, not `C#` or a number). The palette

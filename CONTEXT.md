@@ -47,7 +47,7 @@ most useful booking material.
 | **M0 bootstrap** | repo, palette, chart schema, Gangster Flick sketch, tools + tests | ✅ this commit |
 | **M1 skeleton** | Focusrite in (ASIO), webcam, Record / Rehearse with countdown, Space = start/stop, TDlive window (preview + buttons + input meter), modes Mirror + Ripples, the bus (`docs/LIVE_RIG.md`) | Michael can rehearse and record a take — ✅ 2026-11-20, end-to-end POC working (camera at 640x480) |
 | **M2 harmony engine** | key-free (Roman numeral) charts; spelling in any key by letter arithmetic; chord-scales; weights (root > 3rd/7th > 5th > tensions); fretboard positions (`tools/harmony.py`) | ✅ 2026-11-21: blues + rhythm changes spell correctly in all 15 keys (tests) |
-| **M3 form clock** | load a chart in TD; pick key + tempo in the TDlive window; count-off = bar 1; bar/section/chord clock on the bus; loops choruses | the visual knows which bar and chord it's on |
+| **M3 form clock** | load a chart in TD; pick key + tempo in the TDlive window; count-off = bar 1; bar/section/chord clock on the bus; loops choruses | the visual knows which bar and chord it's on — ✅ 2026-11-21 (song COMP, musical count-in, Chart/Key buttons) |
 | **M4 fretboard landscape** | Michael's image (below), first from the chart alone: wells at every chord-scale position, mass = weight, palette colours | the neck bends with the changes |
 | **M5 listening** | pitch-class (chroma) analysis; played notes become dynamic masses ("melodic nodes"); later: key suggestion from the first bars | the landscape answers what's played |
 | **M6 the circles** | three-circle notation drawn live from chart + audio | "playing duo" |
@@ -77,8 +77,10 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
 - 2026-11-21: the fretboard landscape is the target visual for M4-M5 (it uses the same chart -> chord ->
   spelled chord-scale pipeline, so it ties the ideas together rather than adding one).
 - Open: fixed vs relative do for harmony circles; colours for Cb/Fb/E#/B# and double sharps/flats (stand-in:
-  enharmonic fallback); accent resolution; tuning for the landscape (standard EADGBE assumed; DADGCF?);
-  chord-scale defaults (dominants = mixolydian, m7 = dorian, m7b5 = locrian, dim7 = whole-half).
+  enharmonic fallback); accent resolution.
+- 2026-11-21: tuning is a Config choice, standard by default (alternate tunings are rare but real).
+- 2026-11-21: chord-scale defaults approved; charts override chord by chord; charts can be subclassed
+  (`extends` + `changes_patch`). Blues + rhythm changes versions approved as defaults.
 
 ## 6. Session log
 
@@ -95,3 +97,6 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   spelling, chord-scales, weights, fretboard positions; `charts/blues_jazz.yaml`, `charts/rhythm_changes.yaml`;
   schema 0.2 (`changes_notation`, `default_key`); `render_fretboard.py`. Roadmap re-sequenced around
   Michael's fretboard landscape.
+- **2026-11-21 — session 2b.** M3 form clock: configurable tunings, per-chord scale overrides, chart inheritance
+  (`blues_basic` extends `blues_jazz`), `tools/formclock.py`; TD `song` COMP with engine (tables now / tones /
+  positions + clock CHOP), musical count-in ending on bar 1, Chart + Key buttons. Next: M4 fretboard landscape.

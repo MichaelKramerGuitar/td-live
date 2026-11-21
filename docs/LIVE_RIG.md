@@ -11,8 +11,12 @@
 4. **Space** starts whatever is armed (the hint in the top-left corner says which) and stops anything running.
    **R** arms Record, **H** arms reHearse, **Esc** stops. Keys work while a TouchDesigner window has focus;
    use the TDlive window, because in the network editor Space also plays/pauses the timeline.
-5. **Mode** cycles the visual modes, **Camera** puts you in or out of the shot, **Format** switches 16:9 / 9:16
-   (only while idle, so a take never changes size).
+5. **Chart** cycles the charts that have changes (or *no chart*), **Key** cycles the key (*chart's key* first,
+   then the 15 key signatures), **Mode** cycles the visual modes, **Cam** puts you in or out of the shot,
+   **16:9 / 9:16** switches the format. Chart, Key and Format only change while idle.
+6. With a chart, the countdown is a **musical count-in**: one bar of beats at the tempo (`song` › Count-in Bars),
+   ending on the downbeat of bar 1. The status line then shows chorus, bar and chord. Tempo: `song` › Tempo
+   (each chart has a default).
 
 The countdown and the status line appear **only in the preview**, never in a take.
 
@@ -29,11 +33,12 @@ exec(open(project.folder + '/scripts/build_live.py', encoding='utf-8').read(), g
 
 | COMP | Shortcut | What |
 |---|---|---|
-| `config` | `op.Config` | Format (Width/Height), FPS, Takes folder; Devices page: ASIO device, guitar inputs (`1 2`), Input Gain, camera |
+| `config` | `op.Config` | Format (Width/Height), FPS, Takes folder; Devices page: ASIO device, guitar inputs (`1 2`), Input Gain, camera; Guitar page: Tuning (`standard`, `DADGCF`, `drop_D`, `DADGAD`, or notes low to high like `D A D G B E`) |
 | `sources` | `op.Sources` | `audio_in` (Focusrite USB ASIO) → `guitar` (inputs averaged, mono) and `audio_out` (for takes); `camera` → `cam` (fitted to the format; black when the camera is off/missing) |
 | `analysis` | `op.Analysis` | **the bus**, `analysis/out` |
 | `visuals` | `op.Visuals` | one COMP per mode, each with `out1`: `mirror`, `ripples` |
 | `output` | `op.Output` | `modes` switch → `final` (exactly what is recorded) → `recorder`; `preview` = final + countdown/status |
+| `song` | `op.Song` | Chart / Key / Tempo / Count-in Bars / Frets; `engine` (form clock + harmony, from `tools/`); outputs `now` (where we are), `tones` (current chord-scale: note, interval, role, weight, colour), `positions` (every fretboard position of it, for the current Config › Guitar › Tuning), `out` CHOP (playing, counting_in, beat, bar, chorus, beat_phase, bar_phase, chord_index) |
 | `show` | `op.Show` | Rehearse / Record / Stop / Armed / Mode / Me In Shot / Countdown / Status; the TDlive window (`panel`, `window`); keys |
 
 ### The bus contract (`op.Analysis.op('out')`, all 0..1)
@@ -57,7 +62,10 @@ swappable (same idea as td-experiment's bus). M2 adds pitch channels (chroma) he
 | `keys.py` | `show/keys` | Space / Esc / R / H → logic |
 | `buttons.py` | `show/buttons` | TDlive window buttons → logic |
 
-These DATs are synced to the files: edit in VS Code and TouchDesigner re-reads them.
+These DATs are synced to the files: edit in VS Code and TouchDesigner re-reads them. `modules/song/` works the
+same way (`engine.py`, `setup.py`, `params.py`); the music theory itself lives in `tools/` (harmony, formclock,
+chartlib) so it can be tested without TouchDesigner (`python -m pytest tests`). After editing a file in
+`tools/`, restart TD (Python keeps the old module loaded).
 
 ### Camera notes
 
