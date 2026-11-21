@@ -11,9 +11,14 @@
 4. **Space** starts whatever is armed (the hint in the top-left corner says which) and stops anything running.
    **R** arms Record, **H** arms reHearse, **Esc** stops. Keys work while a TouchDesigner window has focus;
    use the TDlive window, because in the network editor Space also plays/pauses the timeline.
-5. **Chart** cycles the charts that have changes (or *no chart*), **Key** cycles the key (*chart's key* first,
-   then the 15 key signatures), **Mode** cycles the visual modes, **Cam** puts you in or out of the shot,
-   **16:9 / 9:16** switches the format. Chart, Key and Format only change while idle.
+5. The buttons, in two rows:
+   - **Rehearse**, **● Record** (each becomes **Stop** while running), **Chart**, **Key**, **− bpm +**
+     (2 bpm per click; click the number to go back to the chart's tempo).
+   - **Mode**, **Me** (landscape: Outline / Ghost / Negative), **Cam** (you in or out of the shot), **16:9 / 9:16**,
+     **Take** (cycles your takes, newest first; a new take is selected automatically), **▶ Play** / **■ Stop**.
+   Chart, Key, Tempo, Format, Take and Play only work while idle.
+   **Playback** shows the take in the TDlive window and sends its sound to the Focusrite; Space or Stop ends it,
+   and starting a Rehearse/Record ends it too. The recorder never records playback.
 6. With a chart, the countdown is a **musical count-in**: one bar of beats at the tempo (`song` › Count-in Bars),
    ending on the downbeat of bar 1. The status line then shows chorus, bar and chord. Tempo: `song` › Tempo
    (each chart has a default).

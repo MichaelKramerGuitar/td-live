@@ -109,3 +109,5 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   outline / negative, brightness follows playing energy, tinted by the chord root, room cut + soft focus); click
   (visual window + preview dot, and/or audio tick to the interface; never recorded). Next: Michael's first real takes;
   then M5 listening.
+- **2026-11-21 — session 2e.** TDlive window: take playback (Take + Play buttons, sound to the interface),
+  tempo −/+ buttons, Me style button; panel now two rows. Michael ready for real takes.
