@@ -1,8 +1,9 @@
 # Execute DAT on /project1/show: the clock. Runs the state machine once per frame,
 # and opens the TDlive window when the project starts.
 def onStart():
-    run("op.Show.par.Openwindow.pulse()", delayFrames=30)
-    run("op.Show.op('playback').module.retry_deletes()", delayFrames=60)   # takes deleted last session
+    op('/').time.play = True                                  # the rig needs the timeline running
+    op.Show.op('logic').module.later(lambda: op.Show.par.Openwindow.pulse(), 30)
+    op.Show.op('logic').module.later(lambda: op.Show.op('playback').module.retry_deletes(), 60)   # last session
     return
 
 

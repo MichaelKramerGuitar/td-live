@@ -134,7 +134,7 @@ def delete_selected():
         op.Output.op('recorder').par.file = ''
     _save_trash(trash() + [sel])
     S().store('take_selected', None)
-    run("op.Show.op('playback').module.retry_deletes()", delayFrames=30)
+    op.Show.op('logic').module.later(retry_deletes, 30)
 
 
 def toggle():

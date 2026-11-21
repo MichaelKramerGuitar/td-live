@@ -18,6 +18,27 @@ def S():
     return op.Show
 
 
+# Small jobs to run a few frames later. TD's own delayed run counts TIMELINE frames, so it never fires while the
+# timeline is paused (Space in the network editor pauses it) - which once silently stopped takes from starting.
+# These run from show/tick instead, every frame no matter what.
+_LATER = []
+
+
+def later(fn, frames=1):
+    _LATER.append([frames, fn])
+
+
+def _run_later():
+    for job in list(_LATER):
+        job[0] -= 1
+        if job[0] <= 0:
+            _LATER.remove(job)
+            try:
+                job[1]()
+            except Exception as e:
+                debug('later job failed: %s' % e)
+
+
 def E():
     return op.Song.op('engine').module
 
@@ -53,7 +74,7 @@ def stop():
     s = S()
     if state() == 'running' and kind() == 'record':
         _record(False)
-        run("op.Show.op('playback').module.select_newest()", delayFrames=30)   # the take just made
+        later(lambda: op.Show.op('playback').module.select_newest(), 30)   # the take just made
     s.store('state', 'idle')
 
 
@@ -78,7 +99,7 @@ def _record(on):
     name = '%s/%s_%s_%s.mov' % (op.Config.par.Takesfolder.eval(), stamp, mode, op.Config.par.Preset.eval())
     rec.par.file = name                       # name the take FIRST ...
     S().store('lasttake', name)
-    run("op.Output.op('recorder').par.record = True", delayFrames=1)   # ... then start (never overwrites)
+    later(lambda: setattr(op.Output.op('recorder').par, 'record', True), 1)   # ... then start (never overwrites)
 
 
 def _clock(secs):
@@ -87,6 +108,9 @@ def _clock(secs):
 
 def tick():
     """Every frame: advance the countdown, drive the song engine, update overlay text (preview only), Status."""
+    _run_later()
+    if not op('/').time.play:                          # keep the timeline running (Space in the editor pauses it)
+        op('/').time.play = True
     s = S()
     st, now = state(), absTime.seconds
     k = kind()

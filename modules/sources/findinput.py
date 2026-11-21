@@ -11,7 +11,7 @@ def start():
     S.store('scan_peak', {})
     S.store('scan_until', absTime.seconds + SECONDS)
     op.Config.par.Inputinfo = 'Listening on all inputs... play now (%d s)' % SECONDS
-    run("op.Sources.op('findinput').module._step()", delayFrames=1)
+    op.Show.op('logic').module.later(_step, 1)
 
 
 def _step():
@@ -23,7 +23,7 @@ def _step():
         peaks[i + 1] = max(peaks.get(i + 1, 0.0), m)
     S.store('scan_peak', peaks)
     if absTime.seconds < S.fetch('scan_until', 0):
-        run("op.Sources.op('findinput').module._step()", delayFrames=1)
+        op.Show.op('logic').module.later(_step, 1)
         return
     scan.par.active = False
     _finish(peaks)
