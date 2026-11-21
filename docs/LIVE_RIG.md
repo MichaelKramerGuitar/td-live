@@ -100,6 +100,16 @@ chartlib) so it can be tested without TouchDesigner (`python -m pytest tests`). 
 - TOP to CHOP converts colour space (sRGB) by default; for data set Output Color Space to `passthrough`.
 - An instancing Geometry COMP that got into a bad state stayed broken; the build always makes it fresh.
 
+### Takes gotchas
+
+- Movie File In keeps the last movie open even after its File is cleared; Windows then refuses to delete it.
+  Pointing it at another file (TD's sample image) releases it. Delete does this automatically.
+- Audio File Out / Audio File In on takes: not used. Audio File Out only writes when something pulls on it,
+  and stopping an Audio File In that reads a .mov while clearing its file froze TD. Playback sound comes from an
+  Audio Movie CHOP following the movie player.
+- Recording: MJPEG costs ~20 fps here (34 -> 15); Hap costs ~2. Takes stay in sync either way (TD repeats
+  frames to keep real time).
+
 ### Gotchas carried over from td-experiment
 
 - The recorder opens its file the moment `record` turns on, so `logic._record` sets the name first and starts a

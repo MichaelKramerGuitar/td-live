@@ -90,7 +90,9 @@ def _release():
     """2) ... let go of the file a few frames later (never while it is playing) ..."""
     sel = S().fetch('delete_pending', None)
     if op.Output.op('playback').par.file.eval() == sel:
-        op.Output.op('playback').par.file = ''
+        # Clearing the path isn't enough: the Movie File In keeps the last movie open until it opens another
+        # file. Point it at TD's built-in sample image so Windows lets go of the take.
+        op.Output.op('playback').par.file = app.samplesFolder + '/Map/Banana.tif'
     if op.Output.op('recorder').par.file.eval() == sel:
         op.Output.op('recorder').par.file = ''
     run("op.Show.op('playback').module._finish_delete()", delayFrames=20)
