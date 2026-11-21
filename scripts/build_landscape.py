@@ -102,6 +102,7 @@ def line_geo(name, rows, cols, surftype, mat, x, y):
     grid.par.orient = 'xy'
     grid.par.sizex = grid.par.sizey = 1
     grid.par.rows, grid.par.cols = rows, cols
+    grid.par.type = 'poly'                                  # separate polylines, drawn as lines
     grid.par.surftype = surftype
     grid.render = grid.display = True
     g.par.material = mat.path
@@ -111,10 +112,10 @@ def line_geo(name, rows, cols, surftype, mat, x, y):
 m_ter = land_mat('mat_terrain', -0.5, 5.5, 0, (0.20, 0.25, 0.34), 0.55, 0.85, 900, 300)
 m_fret = land_mat('mat_frets', -0.35, 5.35, 1, (0.30, 0.30, 0.34), 0.75, 0.9, 900, 150)
 m_str = land_mat('mat_strings', 0.0, 5.0, 0, (0.55, 0.55, 0.60), 1.0, 1.0, 900, 0)
-line_geo('terrain', 420, 43, 'col', m_ter, 1100, 300)       # long lines down the neck
-fr = line_geo('frets', 2, 40, 'row', m_fret, 1100, 150)     # one line per fret (rows set below)
+line_geo('terrain', 420, 43, 'cols', m_ter, 1100, 300)       # long lines down the neck
+fr = line_geo('frets', 2, 40, 'rows', m_fret, 1100, 150)     # one line per fret (rows set below)
 fr.op('grid').par.rows.expr = 'op.Song.par.Frets + 1'
-line_geo('strings', 420, 6, 'col', m_str, 1100, 0)          # the six strings, brighter
+line_geo('strings', 420, 6, 'cols', m_str, 1100, 0)          # the six strings, brighter
 
 pl_px = synced(L, textDAT, 'planets_frag', 'modules/landscape/planets.frag', 650, -250)
 plx = ensure(L, glslTOP, 'planet_xf', 800, -150)
@@ -142,10 +143,10 @@ ball.par.type = 'polygon'
 ball.par.rows, ball.par.cols = 10, 14
 ball.render = ball.display = True
 pl.par.instancing = True
-pl.par.instanceop = "op('planet_xf')"
+pl.par.instanceop = plx.path
 pl.par.instancetx, pl.par.instancety, pl.par.instancetz = 'r', 'g', 'b'
 pl.par.instancesx = pl.par.instancesy = pl.par.instancesz = 'a'
-pl.par.instancecolorop = "op('mass_colors')"
+pl.par.instancecolorop = mcols.path
 pl.par.instancer, pl.par.instanceg, pl.par.instanceb = 'r', 'g', 'b'
 pl.par.material = pmat.path
 
