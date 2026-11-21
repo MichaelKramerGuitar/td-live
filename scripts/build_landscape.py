@@ -214,10 +214,10 @@ pmix.inputConnectors[1].connect(psoft)
 pmix.par.cross.expr = '1 - parent().par.Planetclarity'
 phalo = ensure(L, blurTOP, 'planet_halo', 1650, -400)
 phalo.inputConnectors[0].connect(rp)
-phalo.par.size = 48
+phalo.par.size = 36
 phl = ensure(L, levelTOP, 'planet_halo_gain', 1800, -400)
 phl.inputConnectors[0].connect(phalo)
-phl.par.brightness1.expr = '2.5 * parent().par.Planetradiance'
+phl.par.brightness1.expr = '0.9 * parent().par.Planetradiance'
 pall = ensure(L, compositeTOP, 'planets_lit', 1950, -300)
 pall.inputConnectors[0].connect(pmix)
 pall.inputConnectors[1].connect(phl)
