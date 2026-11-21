@@ -32,7 +32,7 @@ def onOffToOn(panelValue):
         L_ = op.Visuals.op('landscape')
         combos = [('outline', 'background'), ('ghost', 'background'), ('negative', 'background'),
                   ('outline', 'top_left'), ('outline', 'top_right'), ('outline', 'bottom_left'),
-                  ('outline', 'bottom_right')]
+                  ('outline', 'bottom_right')]                  # tiles use the outline look (Tile Look: styled)
         cur = (L_.par.Mestyle.eval(), L_.par.Meplace.eval())
         if cur[1] != 'background':
             cur = ('outline', cur[1])

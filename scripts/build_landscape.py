@@ -45,6 +45,7 @@ if not has(L, 'Meplace'):                                   # me as a corner til
     L.par.Metilelook.menuLabels = ['Camera (natural)', 'Styled (same as background style)']
     pg4.appendFloat('Metileopacity', label='Tile Opacity')
     L.par.Mesize, L.par.Mesize.default = 0.26, 0.26
+    L.par.Metilelook, L.par.Metilelook.default = 'styled', 'styled'
     L.par.Metileopacity, L.par.Metileopacity.default = 1.0, 1.0
     pg2.appendFloat('Camheight', label='Eye Height')
     pg2.appendFloat('Camback', label='Eye Behind Bridge')

@@ -100,22 +100,36 @@ dev = menu_name_for_label(ain.par.device, C.par.Audiodevice.eval())
 if dev:
     ain.par.device = dev
 REPORT['audio_device'] = dev or 'NOT FOUND: ' + C.par.Audiodevice.eval()
-ain.par.inputselect = 'byindex'
-ain.par.inputindices = ' '.join(str(int(i) - 1) for i in C.par.Guitarchans.eval().split())  # TD counts from 0
-ain.par.inputindices.expr = "' '.join(str(int(i) - 1) for i in op.Config.par.Guitarchans.eval().split())"
+# All inputs by name (selecting by index picked the wrong input on this setup - Michael's find), then choose the
+# guitar input(s) by channel name from Config > Guitar Inputs.
+ain.par.inputselect = 'byname'
+ain.par.inputnames = '*'
+ain.par.inputindices.expr = ''
+gsel = ensure(S_, selectCHOP, 'guitar_inputs', 100, 0)
+gsel.inputConnectors[0].connect(ain)
+gsel.par.channames.expr = "' '.join('chan%s' % i for i in op.Config.par.Guitarchans.eval().split())"
+gtr = ensure(S_, mathCHOP, 'guitar', 200, 0)            # the guitar input(s) averaged to one channel
+gtr.inputConnectors[0].connect(gsel)
+gtr.par.chanop = 'avg' if 'avg' in gtr.par.chanop.menuNames else gtr.par.chanop.menuNames[-1]
+gl = ensure(S_, renameCHOP, 'take_l', 350, -100)          # what goes into a take: the guitar, on both sides
+gl.inputConnectors[0].connect(gtr)
+gl.par.renamefrom, gl.par.renameto = '*', 'left'
+gr = ensure(S_, renameCHOP, 'take_r', 350, -200)
+gr.inputConnectors[0].connect(gtr)
+gr.par.renamefrom, gr.par.renameto = '*', 'right'
+gst = ensure(S_, mergeCHOP, 'take_stereo', 500, -150)
+gst.inputConnectors[0].connect(gl)
+gst.inputConnectors[1].connect(gr)
+aout = ensure(S_, nullCHOP, 'audio_out', 650, -150)       # never more than 2 channels (20 broke the recorder)
+aout.inputConnectors[0].connect(gst)
 scan = ensure(S_, audiodeviceinCHOP, 'scan_in', 0, 200)   # every input, only while Find Guitar Input listens
 scan.par.driver = 'asio'
 if dev:
     scan.par.device = dev
-scan.par.inputselect = 'byindex'
-scan.par.inputindices = '*'
+scan.par.inputselect = 'byname'
+scan.par.inputnames = '*'
 scan.par.active = False
 synced(S_, textDAT, 'findinput', 'modules/sources/findinput.py', 200, 200)
-gtr = ensure(S_, mathCHOP, 'guitar', 200, 0)            # all guitar inputs averaged to one channel
-gtr.inputConnectors[0].connect(ain)
-gtr.par.chanop = 'avg' if 'avg' in gtr.par.chanop.menuNames else gtr.par.chanop.menuNames[-1]
-aout = ensure(S_, nullCHOP, 'audio_out', 200, -150)     # what goes into a take's soundtrack
-aout.inputConnectors[0].connect(ain)
 
 cam_in = S_.op('camera')
 if cam_in is None:                                      # never replace a camera that's already working
