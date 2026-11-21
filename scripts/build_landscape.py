@@ -18,13 +18,14 @@ if not has(L, 'Flip'):
     pg.appendFloat('Ease', label='Chord Morph Speed')
     pg.appendFloat('Brightness', label='Line Brightness')
     pg.appendFloat('Planetsize', label='Planet Size')
+    pg.appendFloat('Planetmin', label='Planets From Weight (0.6 = root, 3rd, 7th)')
     pg2 = page(L, 'Camera')
     pg2.appendFloat('Camheight', label='Eye Height')
     pg2.appendFloat('Camback', label='Eye Behind Bridge')
     pg2.appendFloat('Lookdown', label='Look Point Below Neck')
     pg2.appendFloat('Fov', label='Field Of View')
-    for k, v in (('Depth', 1.6), ('Spread', 1.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.28),
-                 ('Camheight', 2.4), ('Camback', 2.5), ('Lookdown', 2.0), ('Fov', 52)):
+    for k, v in (('Depth', 0.7), ('Spread', 1.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
+                 ('Planetmin', 0.6), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
         L.par[k] = v
         L.par[k].default = v
 
@@ -48,8 +49,8 @@ field.par.resolutionw, field.par.resolutionh = 96, 1024
 field.par.format = 'rgba32float'
 field.par.vec0name = 'uY'
 field.par.vec0valuex, field.par.vec0valuey = YMIN, YMAX
-field.par.vec0valuez.expr = "0.42 * parent().par.Spread"
-field.par.vec0valuew.expr = "0.016 * parent().par.Spread"
+field.par.vec0valuez.expr = "0.5 * parent().par.Spread"
+field.par.vec0valuew.expr = "0.024 * parent().par.Spread"
 
 fb = ensure(L, feedbackTOP, 'feedback', 350, 100)
 smooth = ensure(L, crossTOP, 'smooth', 500, 0)            # eases the surface from chord to chord
@@ -112,7 +113,7 @@ def line_geo(name, rows, cols, surftype, mat, x, y):
 m_ter = land_mat('mat_terrain', -0.5, 5.5, 0, (0.20, 0.25, 0.34), 0.55, 0.85, 900, 300)
 m_fret = land_mat('mat_frets', -0.35, 5.35, 1, (0.30, 0.30, 0.34), 0.75, 0.9, 900, 150)
 m_str = land_mat('mat_strings', 0.0, 5.0, 0, (0.55, 0.55, 0.60), 1.0, 1.0, 900, 0)
-line_geo('terrain', 420, 43, 'cols', m_ter, 1100, 300)       # long lines down the neck
+line_geo('terrain', 420, 31, 'cols', m_ter, 1100, 300)       # long lines down the neck
 fr = line_geo('frets', 2, 40, 'rows', m_fret, 1100, 150)     # one line per fret (rows set below)
 fr.op('grid').par.rows.expr = 'op.Song.par.Frets + 1'
 line_geo('strings', 420, 6, 'cols', m_str, 1100, 0)          # the six strings, brighter
@@ -132,6 +133,7 @@ plx.par.vec1name = 'uWorld'
 plx.par.vec1valuex, plx.par.vec1valuey = STRING_W, NECK_L
 plx.par.vec1valuez.expr = 'parent().par.Depth'
 plx.par.vec1valuew.expr = 'parent().par.Planetsize'
+plx.par.vec0valuez.expr = 'parent().par.Planetmin'
 pmat = ensure(L, constantMAT, 'mat_planets', 900, -150)
 pmat.par.colorr = pmat.par.colorg = pmat.par.colorb = 1.0
 pl = ensure(L, geometryCOMP, 'planets', 1100, -150)
