@@ -185,8 +185,27 @@ def is_numeral(s):
 
 
 # ---------------------------------------------------------------- fretboard
-STANDARD = ['E', 'A', 'D', 'G', 'B', 'E']                 # low to high
-OPEN_OCTAVE = {'standard': [40, 45, 50, 55, 59, 64]}       # MIDI numbers of the open strings
+# Open strings, LOW to HIGH. Standard is the default; alternate tunings are a Config choice in TDlive.
+TUNINGS = {
+    'standard': ['E', 'A', 'D', 'G', 'B', 'E'],
+    'DADGCF':   ['D', 'A', 'D', 'G', 'C', 'F'],          # "8 Little Prayers"
+    'drop_D':   ['D', 'A', 'D', 'G', 'B', 'E'],
+    'DADGAD':   ['D', 'A', 'D', 'G', 'A', 'D'],
+}
+STANDARD = TUNINGS['standard']
+
+
+def parse_tuning(t):
+    """'standard' / 'DADGCF' / 'E A D G B E' / ['E', ...] -> list of spelled open strings, low to high."""
+    if isinstance(t, (list, tuple)):
+        notes = list(t)
+    elif t in TUNINGS:
+        notes = TUNINGS[t]
+    else:
+        notes = t.replace(',', ' ').split()
+    for n in notes:
+        parse_note(n)
+    return notes
 
 
 def fretboard(c, tuning=STANDARD, frets=19):
@@ -194,7 +213,7 @@ def fretboard(c, tuning=STANDARD, frets=19):
     tones = c.scale_tones()
     by_pc = {pc(n): (n, iv, role, w) for n, iv, role, w in tones}
     out = []
-    for s, open_note in enumerate(tuning):
+    for s, open_note in enumerate(parse_tuning(tuning)):
         base = pc(open_note)
         for f in range(frets + 1):
             hit = by_pc.get((base + f) % 12)
@@ -205,8 +224,18 @@ def fretboard(c, tuning=STANDARD, frets=19):
 
 # ---------------------------------------------------------------- charts in numerals
 def realize(chart, key):
-    """Spell a chart's `changes` in a key. Returns {section: [[(Chord, beats), ...] per bar]}."""
+    """Spell a chart's `changes` in a key. Returns {section: [[(Chord, beats), ...] per bar]}.
+    A chord entry is [symbol, beats] or [symbol, beats, {scale: <name>}] (per-chord chord-scale override)."""
+    absolute = chart.get('changes_notation', 'absolute') != 'roman'
     out = {}
     for name, bars in (chart.get('changes') or {}).items():
-        out[name] = [[(chord(sym, key), beats) for sym, beats in bar] for bar in bars]
+        sec = []
+        for bar in bars:
+            row = []
+            for entry in bar:
+                sym, beats = entry[0], entry[1]
+                opts = entry[2] if len(entry) > 2 else {}
+                row.append((chord(sym, None if absolute else key, scale=opts.get('scale')), beats))
+            sec.append(row)
+        out[name] = sec
     return out

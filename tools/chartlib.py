@@ -108,13 +108,42 @@ def hex_to_rgb(h):
 
 # ---- charts ---------------------------------------------------------------------------------------------
 def load_chart(path, validate=True):
-    with open(path, encoding='utf-8') as f:
-        chart = yaml.safe_load(f)
+    chart = resolve(_read(path), os.path.dirname(path))
     if validate:
         problems = check_chart(chart)
         if problems:
             raise ValueError('%s:\n  - %s' % (path, '\n  - '.join(problems)))
     return chart
+
+
+def _read(path):
+    with open(path, encoding='utf-8') as f:
+        return yaml.safe_load(f)
+
+
+def resolve(chart, folder=None, _seen=()):
+    """Chart inheritance. `extends: <id>` copies the parent chart (charts/<id>.yaml) and lets this chart
+    replace any top-level field; `changes_patch: {section: {bar number: [[symbol, beats], ...]}}` then
+    replaces single bars (1-based). Lets a variant (basic blues, bebop blues, a reharm) say only what differs."""
+    import copy
+    parent_id = chart.get('extends')
+    if not parent_id:
+        return chart
+    if parent_id in _seen:
+        raise ValueError('extends loop: %s' % ' -> '.join(_seen + (parent_id,)))
+    folder = folder or os.path.join(ROOT, 'charts')
+    parent = resolve(_read(os.path.join(folder, parent_id + '.yaml')), folder, _seen + (chart.get('id', '?'),))
+    merged = copy.deepcopy(parent)
+    for k, v in chart.items():
+        if k not in ('extends', 'changes_patch'):
+            merged[k] = copy.deepcopy(v)
+    for sec, bars in (chart.get('changes_patch') or {}).items():
+        if sec not in merged.get('changes', {}):
+            raise ValueError('changes_patch: section %r not in %s' % (sec, parent_id))
+        for bar_no, content in bars.items():
+            merged['changes'][sec][int(bar_no) - 1] = content
+    merged['extends_from'] = parent_id
+    return merged
 
 
 def schema_problems(chart):
@@ -156,10 +185,14 @@ def check_chart(chart):
         if len(bars) != bars_by_name[name]:
             out.append('changes/%s: %d bars written, form says %d' % (name, len(bars), bars_by_name[name]))
         for i, bar in enumerate(bars):
-            total = sum(b for _, b in bar)
+            total = sum(e[1] for e in bar)
             if abs(total - beats) > 1e-6:
                 out.append('changes/%s bar %d: chords add up to %s beats, meter has %d' % (name, i + 1, total, beats))
-            for sym, _ in bar:
+            for entry in bar:
+                sym = entry[0]
+                if len(entry) > 2 and entry[2].get('scale') not in harmony.SCALES:
+                    out.append('changes/%s bar %d: unknown scale %r (known: %s)' % (
+                        name, i + 1, entry[2].get('scale'), ', '.join(sorted(harmony.SCALES))))
                 try:
                     if roman:
                         harmony.chord(sym, chart.get('default_key') or 'C')

@@ -17,9 +17,11 @@ else:
     print('palette: %d spellings OK' % len(pal['colors']))
 
 for path in sorted(glob.glob(os.path.join(cl.ROOT, 'charts', '*.yaml'))):
-    with open(path, encoding='utf-8') as f:
-        chart = cl.yaml.safe_load(f)
-    problems = cl.check_chart(chart)
+    try:
+        chart = cl.resolve(cl._read(path), os.path.dirname(path))
+        problems = cl.check_chart(chart)
+    except (ValueError, OSError) as e:
+        chart, problems = None, [str(e)]
     if problems:
         ok = False
         print('FAIL', os.path.basename(path))

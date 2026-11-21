@@ -1,0 +1,15 @@
+# Basic 3-chord blues, written as a variant of the jazz blues: it inherits everything and only says
+# what differs (title and four bars). Shows `extends` + `changes_patch`.
+schema: tdlive-chart/0.2
+id: blues_basic
+extends: blues_jazz
+title: Blues (basic, 3 chords)
+changes_patch:
+  chorus:
+    4:  [[I7, 4]]
+    6:  [[IV7, 4]]
+    8:  [[I7, 4]]
+    9:  [[V7, 4]]
+    10: [[IV7, 4]]
+    11: [[I7, 4]]
+    12: [[V7, 4]]

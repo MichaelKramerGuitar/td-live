@@ -72,6 +72,9 @@ if not has(C, 'Preset'):
     C.par.Guitarchans = '1 2'
     C.par.Inputgain = 6.0
     C.par.Camera = 'HD Pro Webcam C920'
+if not has(C, 'Tuning'):
+    page(C, 'Guitar').appendStr('Tuning', label='Tuning (low to high, or standard / DADGCF / drop_D / DADGAD)')
+    C.par.Tuning = 'standard'
 C.par.Width.expr = "{'landscape_720': 1280, 'portrait_9x16': 720}[me.par.Preset.eval()]"
 C.par.Height.expr = "{'landscape_720': 720, 'portrait_9x16': 1280}[me.par.Preset.eval()]"
 project.cookRate = C.par.Fps.eval()
@@ -245,6 +248,37 @@ mix.par.operand = 'add'
 r_out = ensure(rip, outTOP, 'out1', 900, 100)
 r_out.inputConnectors[0].connect(mix)
 
+# ---------------------------------------------------------------- song (chart, key, tempo, form clock)
+SG = ensure(P, baseCOMP, 'song', 700, 200)
+SG.par.opshortcut = 'Song'
+if not has(SG, 'Chart'):
+    pg = page(SG, 'Song')
+    pg.appendMenu('Chart', label='Chart')
+    pg.appendMenu('Key', label='Key')
+    pg.appendFloat('Tempo', label='Tempo (bpm)')
+    pg.appendInt('Countinbars', label='Count-in Bars')
+    pg.appendInt('Frets', label='Frets')
+    pg.appendPulse('Reloadcharts', label='Reload Charts')
+    SG.par.Tempo = 120
+    SG.par.Countinbars = 1
+    SG.par.Frets = 19
+SG.par.Key.menuNames = ['default', 'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb']
+SG.par.Key.menuLabels = ["Chart's key"] + list(SG.par.Key.menuNames)[1:]
+synced(SG, textDAT, 'engine', 'modules/song/engine.py', 0, 0)
+synced(SG, textDAT, 'setup', 'modules/song/setup.py', 0, -150)
+sp = synced(SG, parameterexecuteDAT, 'params', 'modules/song/params.py', 0, -300)
+sp.par.op = SG.path
+sp.par.pars = 'Chart Reloadcharts'
+sp.par.onpulse = True
+sp.par.valuechange = True
+for n in ('now', 'tones', 'positions'):
+    ensure(SG, tableDAT, n, 250, {'now': 0, 'tones': -150, 'positions': -300}[n])
+clk = ensure(SG, constantCHOP, 'clock', 450, 0)
+sgo = ensure(SG, nullCHOP, 'out', 600, 0)
+sgo.inputConnectors[0].connect(clk)
+SG.op('setup').module.refresh_menu()
+REPORT['charts'] = list(SG.par.Chart.menuNames)
+
 # ---------------------------------------------------------------- show control
 SH = ensure(P, baseCOMP, 'show', 800, 400)
 SH.par.opshortcut = 'Show'
@@ -348,8 +382,8 @@ mc.par.colorb = 0.35
 meter.par.top = mc.path
 meter.par.x, meter.par.y, meter.par.h = 0, BAR_H - 4, 4
 meter.par.w.expr = "max(1, %d * op.Analysis.op('out')['level'])" % PANEL_W
-BUTTONS = [('btn_rehearse', 'Rehearse'), ('btn_record', 'Record'), ('btn_mode', 'Mode'),
-           ('btn_camera', 'Camera'), ('btn_format', 'Format')]
+BUTTONS = [('btn_rehearse', 'Rehearse'), ('btn_record', 'Record'), ('btn_chart', 'Chart'), ('btn_key', 'Key'),
+           ('btn_mode', 'Mode'), ('btn_camera', 'Camera'), ('btn_format', 'Format')]
 bw = PANEL_W // len(BUTTONS)
 for i, (bn, label) in enumerate(BUTTONS):
     b = ensure(pn, containerCOMP, bn, 200 * i, -200)
@@ -357,16 +391,18 @@ for i, (bn, label) in enumerate(BUTTONS):
     t = ensure(b, textTOP, 'label', 0, 0)
     t.par.outputresolution = 'custom'
     t.par.resolutionw, t.par.resolutionh = bw - 8, BAR_H - 12
-    t.par.fontsizex = 15
+    t.par.fontsizex = 14
     t.par.alignx, t.par.aligny = 'center', 'center'
     t.par.bgcolorr, t.par.bgcolorg, t.par.bgcolorb, t.par.bgalpha = 0.16, 0.16, 0.18, 1
     b.par.top = t.path
 LABELS = {
     'btn_rehearse': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse' else 'Rehearse'",
     'btn_record': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '● Record'",
+    'btn_chart': "op.Song.par.Chart.menuLabels[op.Song.par.Chart.menuIndex]",
+    'btn_key': "'Key: ' + (op.Song.op('engine').module.song().key + ' (chart)' if op.Song.par.Key == 'default' and op.Song.op('engine').module.song() else op.Song.par.Key.eval())",
     'btn_mode': "'Mode: ' + op.Show.par.Mode.menuLabels[op.Show.par.Mode.menuIndex]",
-    'btn_camera': "'Camera: ' + ('in shot' if op.Show.par.Camerainshot else 'off')",
-    'btn_format': "'Format: ' + ('16:9' if op.Config.par.Preset == 'landscape_720' else '9:16')",
+    'btn_camera': "'Cam: ' + ('on' if op.Show.par.Camerainshot else 'off')",
+    'btn_format': "'16:9' if op.Config.par.Preset == 'landscape_720' else '9:16'",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

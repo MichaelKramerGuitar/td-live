@@ -2,6 +2,10 @@
 #
 #   idle --start()--> countdown --(Countdown seconds)--> running --stop()--> idle
 #
+# With a chart picked in op.Song, the countdown is a musical count-in (Song › Count-in Bars at the tempo) that
+# ends exactly on the downbeat of bar 1, and the song engine follows the form from there. With Chart = none,
+# the countdown is Show › Countdown seconds.
+#
 # `kind` is 'rehearse' or 'record'. Only 'record' writes a take. Space bar = toggle(): start the armed kind,
 # or stop whatever is counting down / running. Everyone calls these functions: the parameter pulses
 # (actions), the Space key (keys), the panel buttons (buttons) and the per-frame clock (tick).
@@ -12,6 +16,10 @@ import os
 
 def S():
     return op.Show
+
+
+def E():
+    return op.Song.op('engine').module
 
 
 def state():
@@ -29,7 +37,10 @@ def start(k=None):
     k = k or s.par.Armed.eval()
     s.par.Armed = k
     s.store('kind', k)
-    s.store('t_go', absTime.seconds + max(0, s.par.Countdown.eval()))
+    count = E().count_in_seconds()
+    if count is None:
+        count = max(0, s.par.Countdown.eval())
+    s.store('t_go', absTime.seconds + count)           # t_go = downbeat of bar 1
     s.store('state', 'countdown')
 
 
@@ -67,27 +78,31 @@ def _clock(secs):
 
 
 def tick():
-    """Every frame: advance the countdown, update the overlay text (preview only) and Status."""
+    """Every frame: advance the countdown, drive the song engine, update overlay text (preview only), Status."""
     s = S()
     st, now = state(), absTime.seconds
     k = kind()
     big, small = '', ''
+    if st == 'countdown' and now >= s.fetch('t_go', now):
+        s.store('state', 'running')
+        s.store('t_start', s.fetch('t_go', now))
+        if k == 'record':
+            _record(True)
+        st = 'running'
+    t_rel = None if st == 'idle' else now - s.fetch('t_go', now)     # seconds since bar 1 (negative = count-in)
+    p = E().update(t_rel)
+    song = E().describe() if E().active() else ''
     if st == 'countdown':
         left = s.fetch('t_go', now) - now
-        if left <= 0:
-            s.store('state', 'running')
-            s.store('t_start', now)
-            if k == 'record':
-                _record(True)
-            st = 'running'
-        else:
-            big = str(int(math.ceil(left)))
-            small = ('REC in' if k == 'record' else 'REHEARSE in')
+        big = str(p.beats_left) if p is not None else str(int(math.ceil(left)))
+        small = ('REC in' if k == 'record' else 'REHEARSE in') + ('   ' + song if song else '')
     if st == 'running':
         t = now - s.fetch('t_start', now)
-        small = ('● REC  ' if k == 'record' else 'REHEARSE  ') + _clock(t)
+        small = ('\u25cf REC  ' if k == 'record' else 'REHEARSE  ') + _clock(t)
+        if p is not None and not p.counting_in:
+            small += '   %s  |  chorus %d  bar %d  |  %s' % (song, p.chorus, p.bar, p.chord.symbol)
     if st == 'idle':
-        small = 'Space: start %s' % s.par.Armed.eval()
+        small = 'Space: start %s' % s.par.Armed.eval() + ('   |   ' + song if song else '')
     ov = op.Output
     ov.op('count_text').par.text = big
     ov.op('status_text').par.text = small
@@ -97,6 +112,6 @@ def tick():
     ov.op('status_text').par.fontcolorb = 0.35 if rec else 1.0
     lvl = op.Analysis.op('out')['level']
     s.par.Status = '%s | %s | %s | input %3d%% | %s' % (
-        st.upper() if st != 'running' else (k.upper()), s.par.Mode.eval(), op.Config.par.Preset.eval(),
+        st.upper() if st != 'running' else (k.upper()), s.par.Mode.eval(), song or 'no chart',
         int((lvl.eval() if lvl is not None else 0) * 100),
         os.path.basename(s.fetch('lasttake', '')) or 'no takes yet')

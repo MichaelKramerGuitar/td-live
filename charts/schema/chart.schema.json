@@ -243,7 +243,7 @@
       }
     },
     "changes": {
-      "description": "Optional timeline for the live system: per section, a list of bars; each bar is a list of chords as [symbol, beats]. Chord roots must be spelled (they choose the colour). With changes_notation 'roman', symbols are numerals (I7, ii-7, #IVo7, bVI7).",
+      "description": "Optional timeline for the live system: per section, a list of bars; each bar is a list of chords as [symbol, beats]. Chord roots must be spelled (they choose the colour). With changes_notation 'roman', symbols are numerals (I7, ii-7, #IVo7, bVI7). Optional 3rd element {scale: <name>} overrides that chord's default chord-scale (e.g. lydian_dominant, altered).",
       "type": "object",
       "additionalProperties": {
         "type": "array",
@@ -261,10 +261,31 @@
               }
             ],
             "minItems": 2,
-            "maxItems": 2
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "properties": {
+                "scale": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
           }
         }
       }
+    },
+    "extends": {
+      "type": "string",
+      "description": "id of a parent chart (charts/<id>.yaml) to inherit from; any top-level field here replaces the parent's."
+    },
+    "changes_patch": {
+      "type": "object",
+      "description": "Replace single bars of the inherited changes: {section: {bar number (1-based): [[symbol, beats], ...]}}."
+    },
+    "extends_from": {
+      "type": "string",
+      "description": "(set by the loader) the parent this chart was resolved from."
     }
   }
 }

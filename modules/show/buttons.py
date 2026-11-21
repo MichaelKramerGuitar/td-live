@@ -15,6 +15,13 @@ def onOffToOn(panelValue):
         S.par.Mode.menuIndex = (S.par.Mode.menuIndex + 1) % len(S.par.Mode.menuNames)
     elif name == 'btn_camera':
         S.par.Camerainshot = not S.par.Camerainshot.eval()
+    elif name == 'btn_chart' and L().state() == 'idle':
+        p = op.Song.par.Chart
+        p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
+        op.Song.op('setup').module.chart_changed()
+    elif name == 'btn_key' and L().state() == 'idle':
+        p = op.Song.par.Key
+        p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
     elif name == 'btn_format' and L().state() == 'idle':   # never change size mid-take
         C = op.Config
         C.par.Preset.menuIndex = (C.par.Preset.menuIndex + 1) % len(C.par.Preset.menuNames)
