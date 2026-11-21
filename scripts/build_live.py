@@ -298,7 +298,7 @@ if not has(SH, 'Mode'):
     pg.appendStr('Status', label='Status')
     SH.par.Countdown = 4
     SH.par.Camerainshot = True
-MODES = [('mirror', 'Mirror (camera)'), ('ripples', 'Ripples')]
+MODES = [('mirror', 'Mirror (camera)'), ('ripples', 'Ripples'), ('landscape', 'Fretboard Landscape')]
 SH.par.Mode.menuNames = [m for m, _ in MODES]
 SH.par.Mode.menuLabels = [l for _, l in MODES]
 SH.par.Mode.readOnly = False
@@ -318,6 +318,10 @@ keys = synced(SH, chopexecuteDAT, 'keys', 'modules/show/keys.py', 400, -450)
 keys.par.chop = kb.path
 keys.par.offtoon = True
 keys.par.ontooff = keys.par.whileon = keys.par.whileoff = keys.par.valuechange = False
+
+# ---------------------------------------------------------------- mode: fretboard landscape
+exec(open(project.folder + '/scripts/build_landscape.py', encoding='utf-8').read(), globals())
+REPORT['landscape'] = landscape_report
 
 # ---------------------------------------------------------------- output
 O = ensure(P, baseCOMP, 'output', 1000, 400)
