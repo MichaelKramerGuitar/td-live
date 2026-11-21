@@ -94,7 +94,7 @@ dot.par.radiusx.expr = dot.par.radiusy.expr = '0.022'
 dot.par.centerx, dot.par.centery = 0.45, 0.42
 dot.par.bgalpha = 0
 dot.par.borderwidth = 0
-dot.par.fillr.expr = "1.0 if op.Song.op('out')['downbeat'] else 0.6"
-dot.par.fillg.expr = "0.6 if op.Song.op('out')['downbeat'] else 0.8"
-dot.par.fillb.expr = "0.3 if op.Song.op('out')['downbeat'] else 1.0"
+dot.par.fillcolorr.expr = "1.0 if op.Song.op('out')['downbeat'] else 0.6"
+dot.par.fillcolorg.expr = "0.6 if op.Song.op('out')['downbeat'] else 0.8"
+dot.par.fillcolorb.expr = "0.3 if op.Song.op('out')['downbeat'] else 1.0"
 dot.par.fillalpha.expr = "(%s) * (0.15 + 0.85 * (%s))" % (ON_V, ENV)
