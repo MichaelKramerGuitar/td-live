@@ -28,9 +28,18 @@ def onOffToOn(panelValue):
         op.Song.par.Tempo = min(400, op.Song.par.Tempo.eval() + 2)
     elif name == 'btn_tempo' and L().state() == 'idle':     # back to the chart's tempo
         op.Song.op('setup').module.chart_changed(keep_key=True)
-    elif name == 'btn_me':
-        p = op.Visuals.op('landscape').par.Mestyle
-        p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
+    elif name == 'btn_me':                          # background styles, then corner tiles
+        L_ = op.Visuals.op('landscape')
+        combos = [('outline', 'background'), ('ghost', 'background'), ('negative', 'background'),
+                  ('outline', 'top_left'), ('outline', 'top_right'), ('outline', 'bottom_left'),
+                  ('outline', 'bottom_right')]
+        cur = (L_.par.Mestyle.eval(), L_.par.Meplace.eval())
+        if cur[1] != 'background':
+            cur = ('outline', cur[1])
+        i = (combos.index(cur) + 1) % len(combos) if cur in combos else 0
+        L_.par.Mestyle, L_.par.Meplace = combos[i]
+    elif name == 'btn_export' and L().state() == 'idle':
+        op.Show.op('export').module.export_selected()
     elif name == 'btn_take' and L().state() == 'idle':
         op.Show.op('playback').module.select_next()
     elif name == 'btn_delete' and L().state() == 'idle':

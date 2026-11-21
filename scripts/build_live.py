@@ -72,6 +72,16 @@ if not has(C, 'Preset'):
     C.par.Guitarchans = '1 2'
     C.par.Inputgain = 6.0
     C.par.Camera = 'HD Pro Webcam C920'
+if not has(C, 'Findinput'):
+    pgd = page(C, 'Devices')
+    pgd.appendPulse('Findinput', label='Find Guitar Input (play for 6 s)')
+    pgd.appendStr('Inputinfo', label='Input Info')
+    page(C, 'Export').appendStr('Ffmpeg', label='ffmpeg.exe (blank = find it)')
+cacts = synced(C, parameterexecuteDAT, 'actions', 'modules/config/actions.py', 0, 0)
+cacts.par.op = C.path
+cacts.par.pars = 'Findinput'
+cacts.par.onpulse = True
+cacts.par.valuechange = False
 if not has(C, 'Tuning'):
     page(C, 'Guitar').appendStr('Tuning', label='Tuning (low to high, or standard / DADGCF / drop_D / DADGAD)')
     C.par.Tuning = 'standard'
@@ -93,6 +103,14 @@ REPORT['audio_device'] = dev or 'NOT FOUND: ' + C.par.Audiodevice.eval()
 ain.par.inputselect = 'byindex'
 ain.par.inputindices = ' '.join(str(int(i) - 1) for i in C.par.Guitarchans.eval().split())  # TD counts from 0
 ain.par.inputindices.expr = "' '.join(str(int(i) - 1) for i in op.Config.par.Guitarchans.eval().split())"
+scan = ensure(S_, audiodeviceinCHOP, 'scan_in', 0, 200)   # every input, only while Find Guitar Input listens
+scan.par.driver = 'asio'
+if dev:
+    scan.par.device = dev
+scan.par.inputselect = 'byindex'
+scan.par.inputindices = '*'
+scan.par.active = False
+synced(S_, textDAT, 'findinput', 'modules/sources/findinput.py', 200, 200)
 gtr = ensure(S_, mathCHOP, 'guitar', 200, 0)            # all guitar inputs averaged to one channel
 gtr.inputConnectors[0].connect(ain)
 gtr.par.chanop = 'avg' if 'avg' in gtr.par.chanop.menuNames else gtr.par.chanop.menuNames[-1]
@@ -307,6 +325,7 @@ SH.par.Mode.readOnly = False
 
 logic = synced(SH, textDAT, 'logic', 'modules/show/logic.py', 0, 0)
 synced(SH, textDAT, 'playback', 'modules/show/playback.py', 0, 150)
+synced(SH, textDAT, 'export', 'modules/show/export.py', 0, 300)
 acts = synced(SH, parameterexecuteDAT, 'actions', 'modules/show/actions.py', 0, -150)
 acts.par.op = SH.path
 acts.par.pars = '*'
@@ -409,7 +428,7 @@ ROWS = [   # (name, relative width) - row 1: performance, row 2: look + playback
     [('btn_rehearse', 3), ('btn_record', 3), ('btn_chart', 4), ('btn_key', 3),
      ('btn_tempo_down', 1), ('btn_tempo', 2), ('btn_tempo_up', 1)],
     [('btn_mode', 4), ('btn_me', 3), ('btn_camera', 2), ('btn_format', 2), ('btn_take', 3), ('btn_play', 2),
-     ('btn_delete', 2)],
+     ('btn_delete', 2), ('btn_export', 3)],
 ]
 BAR_H = ROW_H * len(ROWS) + 6
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
@@ -459,12 +478,13 @@ LABELS = {
     'btn_tempo': "'%d bpm' % round(op.Song.par.Tempo.eval())",
     'btn_tempo_up': "'+'",
     'btn_mode': "'Mode: ' + op.Show.par.Mode.menuLabels[op.Show.par.Mode.menuIndex]",
-    'btn_me': "'Me: ' + op.Visuals.op('landscape').par.Mestyle.eval().capitalize()",
+    'btn_me': "'Me: ' + (op.Visuals.op('landscape').par.Mestyle.eval().capitalize() if op.Visuals.op('landscape').par.Meplace == 'background' else 'Tile ' + {'top_left': '\\u2196', 'top_right': '\\u2197', 'bottom_left': '\\u2199', 'bottom_right': '\\u2198'}[op.Visuals.op('landscape').par.Meplace.eval()])",
     'btn_camera': "'Cam: ' + ('on' if op.Show.par.Camerainshot else 'off')",
     'btn_format': "'16:9' if op.Config.par.Preset == 'landscape_720' else '9:16'",
     'btn_take': "op.Show.op('playback').module.label()",
     'btn_play': "'\u25a0 Stop' if op.Show.op('playback').module.playing() else '\u25b6 Play'",
     'btn_delete': "'Delete?' if op.Show.op('playback').module.delete_armed() else 'Delete'",
+    'btn_export': "op.Show.op('export').module.label()",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

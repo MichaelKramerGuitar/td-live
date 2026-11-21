@@ -33,6 +33,19 @@ if not has(L, 'Flip'):
     pg3.appendFloat('Mecut', label='Cut The Room (black level)')
     pg3.appendFloat('Mefocus', label='Focus (vignette: smaller = only the centre)')
     pg2 = page(L, 'Camera')
+if not has(L, 'Meplace'):                                   # me as a corner tile (like a speaker on a call)
+    pg4 = page(L, 'Me')
+    pg4.appendMenu('Meplace', label='Placement')
+    L.par.Meplace.menuNames = ['background', 'top_left', 'top_right', 'bottom_left', 'bottom_right']
+    L.par.Meplace.menuLabels = ['Background (behind the land)', 'Tile top left', 'Tile top right',
+                                'Tile bottom left', 'Tile bottom right']
+    pg4.appendFloat('Mesize', label='Tile Size (fraction of width)')
+    pg4.appendMenu('Metilelook', label='Tile Look')
+    L.par.Metilelook.menuNames = ['camera', 'styled']
+    L.par.Metilelook.menuLabels = ['Camera (natural)', 'Styled (same as background style)']
+    pg4.appendFloat('Metileopacity', label='Tile Opacity')
+    L.par.Mesize, L.par.Mesize.default = 0.26, 0.26
+    L.par.Metileopacity, L.par.Metileopacity.default = 1.0, 1.0
     pg2.appendFloat('Camheight', label='Eye Height')
     pg2.appendFloat('Camback', label='Eye Behind Bridge')
     pg2.appendFloat('Lookdown', label='Look Point Below Neck')
@@ -295,16 +308,53 @@ mv.inputConnectors[1].connect(vigi)
 mv.par.operand = 'multiply'
 me = ensure(L, levelTOP, 'me', 2550, -900)
 me.inputConnectors[0].connect(mv)
-me.par.brightness1.expr = ("parent().par.Meamount * (1 - parent().par.Mereact + parent().par.Mereact * "
+me.par.brightness1.expr = ("0 if parent().par.Meplace != 'background' else "
+                           "parent().par.Meamount * (1 - parent().par.Mereact + parent().par.Mereact * "
                            "min(1, op('energy')['level'] * 3.0))")
+
+# tile: me in a corner, over the land
+tsrc = ensure(L, switchTOP, 'tile_source', 2250, -1300)
+tsrc.inputConnectors[0].connect(mcam)
+tsrc.inputConnectors[1].connect(mt)
+tsrc.par.index.expr = "parent().par.Metilelook.menuIndex"
+tile_lvl = ensure(L, levelTOP, 'tile_look', 2400, -1300)
+tile_lvl.inputConnectors[0].connect(tsrc)
+tile_lvl.par.opacity.expr = ("parent().par.Metileopacity if parent().par.Meplace != 'background' "
+                             "and op.Show.par.Camerainshot else 0")
+frame = ensure(L, constantTOP, 'tile_frame', 2400, -1450)  # thin light border behind the tile
+frame.par.resolutionw, frame.par.resolutionh = 16, 9
+frame.par.colorr = frame.par.colorg = frame.par.colorb = 0.75
+frame.par.alpha.expr = "0.55 if parent().par.Meplace != 'background' and op.Show.par.Camerainshot else 0"
+CORNER = ("{'top_left': (-1, 1), 'top_right': (1, 1), 'bottom_left': (-1, -1), 'bottom_right': (1, -1)}"
+          ".get(parent().par.Meplace.eval(), (0, 0))")
+for name_, src_, grow in (('tile_border', frame, 1.012), ('tile', tile_lvl, 1.0)):
+    t = ensure(L, transformTOP, name_, 2550, -1300 if name_ == 'tile' else -1450)
+    t.inputConnectors[0].connect(src_)
+    t.par.outputresolution = 'custom'
+    t.par.resolutionw.expr, t.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
+    t.par.extend = 'zero'
+    t.par.sx.expr = 'parent().par.Mesize * %s' % grow
+    t.par.sy.expr = 'parent().par.Mesize * %s' % grow            # cam is already fitted to the format
+    m = 0.03
+    t.par.tx.expr = "%s[0] * (0.5 - parent().par.Mesize / 2 - %s)" % (CORNER, m)
+    t.par.ty.expr = ("%s[1] * (0.5 - parent().par.Mesize / 2 - %s * op.Config.par.Width / op.Config.par.Height)"
+                     % (CORNER, m))
+tile_all = ensure(L, compositeTOP, 'tile_all', 2700, -1350)
+tile_all.inputConnectors[0].connect(L.op('tile'))
+tile_all.inputConnectors[1].connect(L.op('tile_border'))
+tile_all.par.operand = 'over'
 
 final_l = ensure(L, compositeTOP, 'landscape_all', 2550, 0)
 final_l.inputConnectors[0].connect(glow)
 final_l.inputConnectors[1].connect(pall)
 final_l.inputConnectors[2].connect(me)
 final_l.par.operand = 'add'
-lout = ensure(L, outTOP, 'out1', 2700, 0)
-lout.inputConnectors[0].connect(final_l)
+with_tile = ensure(L, compositeTOP, 'with_tile', 2700, 0)
+with_tile.inputConnectors[0].connect(L.op('tile_all'))
+with_tile.inputConnectors[1].connect(final_l)
+with_tile.par.operand = 'over'
+lout = ensure(L, outTOP, 'out1', 2850, 0)
+lout.inputConnectors[0].connect(with_tile)
 landscape_report = {'masses': masses.width, 'field': [field.width, field.height],
                     'errors': {o.path: o.errors() for o in L.findChildren(depth=None) if o.errors()},
                     'warnings': {o.path: o.warnings() for o in L.findChildren(depth=None) if o.warnings()}}
