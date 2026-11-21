@@ -11,10 +11,54 @@ def S():
 
 
 def takes():
-    """Take files, newest first (relative to the project folder)."""
+    """Take files, newest first (relative to the project folder), minus takes waiting to be deleted."""
     folder = os.path.join(project.folder, op.Config.par.Takesfolder.eval())
     files = sorted(glob.glob(os.path.join(folder, '*.mov')), key=os.path.getmtime, reverse=True)
-    return [os.path.relpath(f, project.folder).replace('\\', '/') for f in files]
+    gone = set(trash())
+    return [r for r in (os.path.relpath(f, project.folder).replace('\\', '/') for f in files) if r not in gone]
+
+
+# ---- deleting: Windows refuses to delete a movie TD still has open (TD can hold it for a while after playback),
+# so a confirmed delete hides the take at once and the file is removed as soon as Windows allows (retried every
+# couple of seconds, and at the next start). The list survives restarts in Takes/_delete_pending.txt.
+def _trash_file():
+    return os.path.join(project.folder, op.Config.par.Takesfolder.eval(), '_delete_pending.txt')
+
+
+def trash():
+    try:
+        with open(_trash_file(), encoding='utf-8') as f:
+            return [l.strip() for l in f if l.strip()]
+    except OSError:
+        return []
+
+
+def _save_trash(items):
+    path = _trash_file()
+    if items:
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(items) + '\n')
+    elif os.path.exists(path):
+        os.remove(path)
+
+
+def retry_deletes():
+    """Try to remove every pending take; keep the ones Windows still refuses."""
+    left = []
+    for rel in trash():
+        ok = True
+        for f in (rel, rel[:-4] + '.wav'):
+            path = os.path.join(project.folder, f)
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+            except OSError:
+                ok = False
+        if not ok:
+            left.append(rel)
+    if left != trash():
+        _save_trash(left)
+    return left
 
 
 def selected():
@@ -82,37 +126,15 @@ def delete_selected():
         S().store('delete_armed_at', time.time())
         return
     S().store('delete_armed_at', -100)
-    stop()                                      # 1) stop playing ...
-    S().store('delete_pending', sel)
-    run("op.Show.op('playback').module._release()", delayFrames=10)
-
-
-def _release():
-    """2) ... let go of the file a few frames later (never while it is playing) ..."""
-    sel = S().fetch('delete_pending', None)
-    if op.Output.op('playback').par.file.eval() == sel:
-        # Clearing the path isn't enough: the Movie File In keeps the last movie open until it opens another
-        # file. Point it at TD's built-in sample image so Windows lets go of the take.
-        op.Output.op('playback').par.file = app.samplesFolder + '/Map/Banana.tif'
+    stop()
+    mf = op.Output.op('playback')
+    if mf.par.file.eval() == sel:
+        mf.par.file = app.samplesFolder + '/Map/Banana.tif'   # let go of the movie as far as TD can
     if op.Output.op('recorder').par.file.eval() == sel:
         op.Output.op('recorder').par.file = ''
-    run("op.Show.op('playback').module._finish_delete()", delayFrames=20)
-
-
-def _finish_delete():
-    """3) ... and delete it."""
-    sel = S().fetch('delete_pending', None)
-    if not sel:
-        return
-    S().store('delete_pending', None)
-    for f in (sel, sel[:-4] + '.wav'):
-        path = os.path.join(project.folder, f)
-        try:
-            if os.path.exists(path):
-                os.remove(path)
-        except OSError as e:
-            debug('could not delete %s: %s' % (f, e))
+    _save_trash(trash() + [sel])
     S().store('take_selected', None)
+    run("op.Show.op('playback').module.retry_deletes()", delayFrames=30)
 
 
 def toggle():
@@ -121,6 +143,8 @@ def toggle():
 
 def tick():
     """Called every frame by show/logic: advance the playback index, stop at the end. Returns status text."""
+    if absTime.frame % 60 == 0 and trash():
+        retry_deletes()
     if not playing():
         return None
     mf = op.Output.op('playback')

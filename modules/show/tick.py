@@ -2,6 +2,7 @@
 # and opens the TDlive window when the project starts.
 def onStart():
     run("op.Show.par.Openwindow.pulse()", delayFrames=30)
+    run("op.Show.op('playback').module.retry_deletes()", delayFrames=60)   # takes deleted last session
     return
 
 
