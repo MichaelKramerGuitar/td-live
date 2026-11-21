@@ -20,6 +20,16 @@
 
 The countdown and the status line appear **only in the preview**, never in a take.
 
+### Click (never recorded)
+
+`show` › Click page: **Click** = Off / Visual / Audio / Visual + Audio, **Click Volume**, **Open Click Window**.
+Needs a chart (it follows the song's tempo, including the count-in).
+- Visual: the *TDlive click* window (always on top; put it on another monitor) flashes every beat, warm on beat 1,
+  with the beat number, bar and chord -> next chord; plus a small dot in the TDlive window preview.
+- Audio: a short tick (higher on beat 1) to the Focusrite outputs (`click/to_interface`).
+- Takes record only the guitar input (`sources/audio_out`) and `output/final`, so neither click can get into one.
+- The tick is frame-timed (±8 ms at 60 fps): fine for keeping your place, not a studio metronome.
+
 Takes are Motion-JPEG `.mov` at the output size and 60 fps with the guitar's audio, named
 `Takes/<date>_<time>_<mode>_<format>.mov`. They're big; convert/upscale with ffmpeg as in td-experiment.
 
@@ -37,7 +47,7 @@ exec(open(project.folder + '/scripts/build_live.py', encoding='utf-8').read(), g
 | `sources` | `op.Sources` | `audio_in` (Focusrite USB ASIO) → `guitar` (inputs averaged, mono) and `audio_out` (for takes); `camera` → `cam` (fitted to the format; black when the camera is off/missing) |
 | `analysis` | `op.Analysis` | **the bus**, `analysis/out` |
 | `visuals` | `op.Visuals` | one COMP per mode, each with `out1`: `mirror`, `ripples` |
-| `visuals/landscape` | | Michael's fretboard landscape (built by `scripts/build_landscape.py`, shaders in `modules/landscape/`): `song/positions` -> `masses` / `mass_colors` (Script TOPs) -> `field` (GLSL: well depth + colour) -> `smooth` (eases between chords) -> line grids `terrain` / `frets` / `strings` (GLSL MAT sinks them into the wells) + `planets` (instanced, root/3rd/7th) -> `render` -> glow. Parameters: Flip (low string on the right), Depth, Spread, Contrast, Ease, Brightness, Planet Size, Planets From Weight; Camera page: Eye Height, Eye Behind Bridge, Look Point, Field Of View |
+| `visuals/landscape` | | Michael's fretboard landscape (built by `scripts/build_landscape.py`, shaders in `modules/landscape/`): `song/positions` -> `masses` / `mass_colors` (Script TOPs) -> `field` (GLSL: well depth + colour) -> `smooth` (eases between chords) -> line grids `terrain` / `frets` / `strings` (GLSL MAT sinks them into the wells) + `planets` (instanced, root/3rd/7th) -> `render` -> glow. Parameters: Flip (low string on the right), Depth, Spread, Contrast, Ease (chord morph speed), Brightness, Planet Size, Planets From Weight, Planet Clarity (radiant cloud .. crisp), Planet Radiance (halo); Me page (the camera as light behind the land): Style (ghost / outline / negative), Brightness, Follows Playing, Fade After Playing, Tint With Chord Root Colour, Cut The Room, Focus; Camera page: Eye Height, Eye Behind Bridge, Look Point, Field Of View |
 | `output` | `op.Output` | `modes` switch → `final` (exactly what is recorded) → `recorder`; `preview` = final + countdown/status |
 | `song` | `op.Song` | Chart / Key / Tempo / Count-in Bars / Frets; `engine` (form clock + harmony, from `tools/`); outputs `now` (where we are), `tones` (current chord-scale: note, interval, role, weight, colour), `positions` (every fretboard position of it, for the current Config › Guitar › Tuning), `out` CHOP (playing, counting_in, beat, bar, chorus, beat_phase, bar_phase, chord_index) |
 | `show` | `op.Show` | Rehearse / Record / Stop / Armed / Mode / Me In Shot / Countdown / Status; the TDlive window (`panel`, `window`); keys |

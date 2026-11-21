@@ -104,3 +104,8 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   the nut, line terrain sunk by gaussian wells (depth ~ weight^2), palette colours, eased chord morphs, planets
   for root/3rd/7th, level glow + hit flash. Debugged TD 2025 instancing (default sphere; no premultiply on data
   textures). Next: Michael plays through it; then M5 listening (played notes as masses).
+- **2026-11-21 — session 2d.** Michael's feedback on the landscape: perspective, materials and morph speed right;
+  planets could be more radiant. Added: planet Clarity + Radiance; "Me" camera presence behind the land (ghost /
+  outline / negative, brightness follows playing energy, tinted by the chord root, room cut + soft focus); click
+  (visual window + preview dot, and/or audio tick to the interface; never recorded). Next: Michael's first real takes;
+  then M5 listening.
