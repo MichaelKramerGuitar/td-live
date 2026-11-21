@@ -5,6 +5,7 @@
 #   - on every chord change: the chord-scale (song/tones) and its fretboard positions (song/positions),
 #     with weights and palette colours, for the visuals (the fretboard landscape reads these)
 import glob
+import math
 import os
 import sys
 
@@ -86,7 +87,7 @@ def update(seconds):
     now, clock = S.op('now'), S.op('clock')
     if s is None or seconds is None:
         vals = {'playing': 0, 'counting_in': 0, 'beat_phase': 0, 'bar_phase': 0, 'beat': 0, 'bar': 0,
-                'chorus': 0, 'chord_index': -1}
+                'chorus': 0, 'chord_index': -1, 'tick': 1, 'downbeat': 0, 'active': 0, 'beats_left': 0}
         _set_clock(clock, vals)
         _set_now(now, {'chart': describe(), 'state': 'idle'})
         if s is not None and _CACHE['chord_index'] != 'idle':      # show the first chord while idle
@@ -94,9 +95,14 @@ def update(seconds):
             _write_chord(s.events[0][2])
         return None
     p = s.at(seconds)
+    # Click timing, continuous through the count-in: tick = 0..1 since the last beat; downbeat = beat 1 of a bar.
+    beats = seconds / s.sec_per_beat
+    tick = beats - math.floor(beats)
+    downbeat = 1 if int(math.floor(beats)) % s.beats_per_bar == 0 else 0
     _set_clock(clock, {'playing': 0 if p.counting_in else 1, 'counting_in': 1 if p.counting_in else 0,
                        'beat_phase': p.beat_phase, 'bar_phase': p.bar_phase, 'beat': p.beat, 'bar': p.bar,
-                       'chorus': p.chorus, 'chord_index': p.chord_index})
+                       'chorus': p.chorus, 'chord_index': p.chord_index,
+                       'tick': tick, 'downbeat': downbeat, 'active': 1, 'beats_left': p.beats_left})
     ch = p.chord or p.next_chord
     _set_now(now, {'chart': describe(), 'state': 'count-in' if p.counting_in else 'playing',
                    'chorus': p.chorus, 'section': p.section, 'pass': p.pass_, 'bar': p.bar,

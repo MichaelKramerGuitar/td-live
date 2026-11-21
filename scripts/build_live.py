@@ -326,6 +326,7 @@ REPORT['landscape'] = landscape_report
 # ---------------------------------------------------------------- output
 O = ensure(P, baseCOMP, 'output', 1000, 400)
 O.par.opshortcut = 'Output'
+exec(open(project.folder + '/scripts/build_click.py', encoding='utf-8').read(), globals())   # click (never recorded)
 sw = ensure(O, switchTOP, 'modes', 0, 0)
 for i, (m, _) in enumerate(MODES):
     s = ensure(O, selectTOP, 'mode_' + m, -200, -120 * i)
@@ -356,7 +357,11 @@ st_.par.bgalpha = 0
 ov = ensure(O, compositeTOP, 'preview', 500, -100)
 ov.inputConnectors[0].connect(st_)
 ov.inputConnectors[1].connect(ct)
-ov.inputConnectors[2].connect(final)
+if O.op('beat_dot') is not None:
+    ov.inputConnectors[2].connect(O.op('beat_dot'))
+    ov.inputConnectors[3].connect(final)
+else:
+    ov.inputConnectors[2].connect(final)
 ov.par.operand = 'over'
 
 rec = ensure(O, moviefileoutTOP, 'recorder', 500, 100)

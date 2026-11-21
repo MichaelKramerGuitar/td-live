@@ -20,13 +20,24 @@ if not has(L, 'Flip'):
     pg.appendFloat('Brightness', label='Line Brightness')
     pg.appendFloat('Planetsize', label='Planet Size')
     pg.appendFloat('Planetmin', label='Planets From Weight (0.6 = root, 3rd, 7th)')
+    pg.appendFloat('Planetclarity', label='Planet Clarity (0 = radiant cloud, 1 = crisp)')
+    pg.appendFloat('Planetradiance', label='Planet Radiance (halo)')
+    pg3 = page(L, 'Me')
+    pg3.appendMenu('Mestyle', label='Style')
+    L.par.Mestyle.menuNames = ['ghost', 'outline', 'negative']
+    L.par.Mestyle.menuLabels = ['Ghost (soft light)', 'Outline (traced edge)', 'Negative']
+    pg3.appendFloat('Meamount', label='Brightness')
+    pg3.appendFloat('Mereact', label='Follows Playing (0 = always on, 1 = only when playing)')
+    pg3.appendFloat('Mefade', label='Fade After Playing (s)')
+    pg3.appendToggle('Metint', label='Tint With Chord Root Colour')
     pg2 = page(L, 'Camera')
     pg2.appendFloat('Camheight', label='Eye Height')
     pg2.appendFloat('Camback', label='Eye Behind Bridge')
     pg2.appendFloat('Lookdown', label='Look Point Below Neck')
     pg2.appendFloat('Fov', label='Field Of View')
     for k, v in (('Depth', 0.9), ('Spread', 1.0), ('Contrast', 2.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
-                 ('Planetmin', 0.6), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
+                 ('Planetmin', 0.6), ('Planetclarity', 0.55), ('Planetradiance', 0.5),
+                 ('Meamount', 0.55), ('Mereact', 0.85), ('Mefade', 1.2), ('Metint', True), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
         L.par[k] = v
         L.par[k].default = v
 
@@ -169,14 +180,19 @@ cam.par.lookat = tgt.path
 cam.par.fov.expr = 'parent().par.Fov'
 cam.par.near, cam.par.far = 0.05, 200
 
-rnd = ensure(L, renderTOP, 'render', 1500, 50)
-rnd.par.outputresolution = 'custom'
-rnd.par.resolutionw.expr, rnd.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
-rnd.par.camera = cam.path
-rnd.par.geometry = ' '.join(g.path for g in (L.op('terrain'), L.op('frets'), L.op('strings'), pl))
-rnd.par.bgcolorr, rnd.par.bgcolorg, rnd.par.bgcolorb, rnd.par.bgcolora = 0.012, 0.014, 0.022, 1.0
-if 'antialias' in [p.name for p in rnd.pars()]:
-    rnd.par.antialias = 'aa8' if 'aa8' in rnd.par.antialias.menuNames else rnd.par.antialias.eval()
+def render_top(name, geos, x, y, bg_alpha):
+    r = ensure(L, renderTOP, name, x, y)
+    r.par.outputresolution = 'custom'
+    r.par.resolutionw.expr, r.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
+    r.par.camera = cam.path
+    r.par.geometry = ' '.join(g.path for g in geos)
+    r.par.bgcolorr, r.par.bgcolorg, r.par.bgcolorb, r.par.bgcolora = 0.012, 0.014, 0.022, bg_alpha
+    if 'antialias' in [p.name for p in r.pars()]:
+        r.par.antialias = 'aa8' if 'aa8' in r.par.antialias.menuNames else r.par.antialias.eval()
+    return r
+
+
+rnd = render_top('render', (L.op('terrain'), L.op('frets'), L.op('strings')), 1500, 50, 1.0)
 blur = ensure(L, blurTOP, 'glow_blur', 1650, -50)
 blur.inputConnectors[0].connect(rnd)
 blur.par.size = 12
@@ -184,8 +200,88 @@ glow = ensure(L, compositeTOP, 'glow', 1800, 50)
 glow.inputConnectors[0].connect(rnd)
 glow.inputConnectors[1].connect(blur)
 glow.par.operand = 'add'
-lout = ensure(L, outTOP, 'out1', 1950, 50)
-lout.inputConnectors[0].connect(glow)
+
+# planets: rendered on their own so they can be crisp or a radiant cloud (Clarity) with a halo (Radiance)
+rp = render_top('render_planets', (pl,), 1500, -250, 0.0)
+psoft = ensure(L, blurTOP, 'planet_soft', 1650, -250)
+psoft.inputConnectors[0].connect(rp)
+psoft.par.size.expr = '2 + 26 * (1 - parent().par.Planetclarity)'
+pmix = ensure(L, crossTOP, 'planet_clarity', 1800, -250)
+pmix.inputConnectors[0].connect(rp)
+pmix.inputConnectors[1].connect(psoft)
+pmix.par.cross.expr = '1 - parent().par.Planetclarity'
+phalo = ensure(L, blurTOP, 'planet_halo', 1650, -400)
+phalo.inputConnectors[0].connect(rp)
+phalo.par.size = 48
+phl = ensure(L, levelTOP, 'planet_halo_gain', 1800, -400)
+phl.inputConnectors[0].connect(phalo)
+phl.par.brightness1.expr = '2.5 * parent().par.Planetradiance'
+pall = ensure(L, compositeTOP, 'planets_lit', 1950, -300)
+pall.inputConnectors[0].connect(pmix)
+pall.inputConnectors[1].connect(phl)
+pall.par.operand = 'add'
+
+# me: the camera as light behind the land, appearing with the energy of the playing
+energy = ensure(L, lagCHOP, 'energy', 1500, -600)            # quick to appear, lingers after the playing stops
+lvl_sel = ensure(L, selectCHOP, 'level_in', 1350, -600)
+lvl_sel.par.chop = op.Analysis.op('out').path
+lvl_sel.par.channames = 'level'
+energy.inputConnectors[0].connect(lvl_sel)
+energy.par.lag1 = 0.05
+energy.par.lag2.expr = 'parent().par.Mefade'
+mcam = ensure(L, selectTOP, 'me_cam', 1350, -800)
+mcam.par.top = op.Sources.op('cam').path
+mmono = ensure(L, monochromeTOP, 'me_mono', 1500, -800)
+mmono.inputConnectors[0].connect(mcam)
+# ghost: soft, lifted luminance
+gb = ensure(L, blurTOP, 'me_ghost_blur', 1650, -700)
+gb.inputConnectors[0].connect(mmono)
+gb.par.size = 6
+gl = ensure(L, levelTOP, 'me_ghost', 1800, -700)
+gl.inputConnectors[0].connect(gb)
+gl.par.gamma1 = 1.6
+gl.par.contrast = 1.3
+# outline: traced edges
+ed = ensure(L, edgeTOP, 'me_edge', 1650, -850)
+ed.inputConnectors[0].connect(mmono)
+eb = ensure(L, blurTOP, 'me_outline', 1800, -850)
+eb.inputConnectors[0].connect(ed)
+eb.par.size = 2
+eg = ensure(L, levelTOP, 'me_outline_gain', 1950, -850)
+eg.inputConnectors[0].connect(eb)
+eg.par.brightness1 = 3.0
+# negative: inverted luminance, darkest parts glow
+ng = ensure(L, levelTOP, 'me_negative', 1650, -1000)
+ng.inputConnectors[0].connect(gb)
+ng.par.invert = 1.0
+ng.par.gamma1 = 2.2
+msw = ensure(L, switchTOP, 'me_style', 2100, -850)
+msw.inputConnectors[0].connect(gl)
+msw.inputConnectors[1].connect(eg)
+msw.inputConnectors[2].connect(ng)
+msw.par.index.expr = 'parent().par.Mestyle.menuIndex'
+tint = ensure(L, constantTOP, 'me_tint', 2100, -1000)
+tint.par.resolutionw, tint.par.resolutionh = 8, 8
+for ch, col in (('colorr', 'r'), ('colorg', 'g'), ('colorb', 'b')):
+    tint.par[ch].expr = ("float(op.Song.op('tones')[1, '%s'] or 1) * 0.8 + 0.2 if parent().par.Metint and "
+                         "op.Song.op('tones').numRows > 1 else 0.85") % col
+mt = ensure(L, compositeTOP, 'me_tinted', 2250, -900)
+mt.inputConnectors[0].connect(msw)
+mt.inputConnectors[1].connect(tint)
+mt.par.operand = 'multiply'
+mt.par.size = 'input1' if 'input1' in mt.par.size.menuNames else mt.par.size.eval()
+me = ensure(L, levelTOP, 'me', 2400, -900)
+me.inputConnectors[0].connect(mt)
+me.par.brightness1.expr = ("parent().par.Meamount * (1 - parent().par.Mereact + parent().par.Mereact * "
+                           "min(1, op('energy')['level'] * 1.6))")
+
+final_l = ensure(L, compositeTOP, 'landscape_all', 2550, 0)
+final_l.inputConnectors[0].connect(glow)
+final_l.inputConnectors[1].connect(pall)
+final_l.inputConnectors[2].connect(me)
+final_l.par.operand = 'add'
+lout = ensure(L, outTOP, 'out1', 2700, 0)
+lout.inputConnectors[0].connect(final_l)
 landscape_report = {'masses': masses.width, 'field': [field.width, field.height],
                     'errors': {o.path: o.errors() for o in L.findChildren(depth=None) if o.errors()},
                     'warnings': {o.path: o.warnings() for o in L.findChildren(depth=None) if o.warnings()}}
