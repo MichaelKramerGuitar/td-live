@@ -3,6 +3,7 @@
 # Recording is untouched: the recorder always records output/final (the live picture), never playback.
 import glob
 import os
+import time
 
 
 def S():
@@ -69,16 +70,16 @@ def stop():
 
 
 def delete_armed():
-    return absTime.seconds - S().fetch('delete_armed_at', -100) < 3.0
+    return time.time() - S().fetch('delete_armed_at', -100) < 4.0     # real clock: 4 s to confirm
 
 
 def delete_selected():
-    """First click arms (label 'Delete?'), a second click within 3 s deletes the selected take (.mov, and a .wav of the same name if there is one)."""
+    """First click arms (label 'Delete?'), a second click within 4 s deletes the selected take (.mov, and a .wav of the same name if there is one)."""
     sel = selected()
     if not sel:
         return
     if not delete_armed():
-        S().store('delete_armed_at', absTime.seconds)
+        S().store('delete_armed_at', time.time())
         return
     S().store('delete_armed_at', -100)
     stop()                                      # 1) stop playing ...
