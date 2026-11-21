@@ -118,3 +118,8 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
 - **2026-11-21 — session 2g.** Export button (ffmpeg -> 1080p H.264 mp4 in Exports/), Find Guitar Input, Me as a
   corner tile. Takes recorded silent audio: investigating (guitar is on Focusrite input 1; input numbering
   confirmed 0-based in TD).
+- **2026-11-21 — session 2h.** Silent / missing takes solved: (1) selecting inputs by index picked the wrong
+  input - Michael switched audio_in to all inputs by name; the build now picks the guitar by channel name and
+  sends 2 channels to the recorder (20 channels made it silently write nothing); (2) Space in the network editor
+  paused the timeline, which froze the show (Execute DAT frame callbacks + run(delayFrames) follow the timeline) -
+  a real-clock watchdog now keeps it playing. Corner tile uses the outline look.
