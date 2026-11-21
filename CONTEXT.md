@@ -111,3 +111,7 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   then M5 listening.
 - **2026-11-21 — session 2e.** TDlive window: take playback (Take + Play buttons, sound to the interface),
   tempo −/+ buttons, Me style button; panel now two rows. Michael ready for real takes.
+- **2026-11-21 — session 2f.** First real takes: recording was choppy (MJPEG ~15 fps) -> Hap (~32 fps) and a
+  steady 30 fps rig; Me brightened; playback sound via Audio Movie CHOP; Delete button (confirm, deferred file
+  removal because TD holds played movies). TD froze once (Audio File In on a .mov stopped + cleared at once);
+  after the forced restart, the build script restored everything that hadn't been saved.

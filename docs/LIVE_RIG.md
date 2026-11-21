@@ -19,6 +19,9 @@
    Chart, Key, Tempo, Format, Take and Play only work while idle.
    **Playback** shows the take in the TDlive window and sends its sound to the Focusrite; Space or Stop ends it,
    and starting a Rehearse/Record ends it too. The recorder never records playback.
+   **Delete** (second row): click once (it reads **Delete?**), again within 4 s to delete the selected take. It
+   disappears from the list at once; the file is removed as soon as Windows lets go of it (TD can keep a played
+   movie open), at the latest at the next start (pending list: `Takes/_delete_pending.txt`).
 6. With a chart, the countdown is a **musical count-in**: one bar of beats at the tempo (`song` › Count-in Bars),
    ending on the downbeat of bar 1. The status line then shows chorus, bar and chord. Tempo: `song` › Tempo
    (each chart has a default).
@@ -102,8 +105,8 @@ chartlib) so it can be tested without TouchDesigner (`python -m pytest tests`). 
 
 ### Takes gotchas
 
-- Movie File In keeps the last movie open even after its File is cleared; Windows then refuses to delete it.
-  Pointing it at another file (TD's sample image) releases it. Delete does this automatically.
+- TD can keep a played movie open after playback (even with the File cleared), and Windows refuses to delete an
+  open file. Delete therefore hides the take at once and retries the file every ~2 s and at the next start.
 - Audio File Out / Audio File In on takes: not used. Audio File Out only writes when something pulls on it,
   and stopping an Audio File In that reads a .mov while clearing its file froze TD. Playback sound comes from an
   Audio Movie CHOP following the movie player.
