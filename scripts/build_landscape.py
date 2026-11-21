@@ -273,15 +273,22 @@ mt.inputConnectors[0].connect(msw)
 mt.inputConnectors[1].connect(tint)
 mt.par.operand = 'multiply'
 mt.par.size = 'input1' if 'input1' in mt.par.size.menuNames else mt.par.size.eval()
-vig = ensure(L, rampTOP, 'me_vignette', 2250, -1050)       # centre-weighted: the room fades toward the edges
-vig.par.type = 'radial'
+old_v = L.op('me_vignette')
+if old_v is not None and old_v.OPType != 'glslTOP':
+    old_v.destroy()
+for n in ('me_vignette_inv',):
+    if L.op(n) is not None:
+        L.op(n).destroy()
+vpx = synced(L, textDAT, 'vignette_frag', 'modules/landscape/vignette.frag', 2250, -1200)
+vig = ensure(L, glslTOP, 'me_vignette', 2250, -1050)       # centre-weighted: the room fades toward the edges
+vig.par.pixeldat = vpx.path
 vig.par.outputresolution = 'custom'
 vig.par.resolutionw.expr, vig.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
-vig.par.period.expr = 'parent().par.Mefocus * 1.4'
-vig.par.extendright = 'hold' if 'hold' in vig.par.extendright.menuNames else vig.par.extendright.eval()
-vigi = ensure(L, levelTOP, 'me_vignette_inv', 2400, -1050)
-vigi.inputConnectors[0].connect(vig)
-vigi.par.invert = 1.0
+vig.par.vec0name = 'uV'
+vig.par.vec0valuex.expr = 'parent().par.Mefocus'
+vig.par.vec0valuey.expr = 'op.Config.par.Width / op.Config.par.Height'
+vig.par.vec0valuez = 0.55
+vigi = vig
 mv = ensure(L, compositeTOP, 'me_focused', 2400, -900)
 mv.inputConnectors[0].connect(mt)
 mv.inputConnectors[1].connect(vigi)
