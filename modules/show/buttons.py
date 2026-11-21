@@ -22,6 +22,19 @@ def onOffToOn(panelValue):
     elif name == 'btn_key' and L().state() == 'idle':
         p = op.Song.par.Key
         p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
+    elif name == 'btn_tempo_down' and L().state() == 'idle':
+        op.Song.par.Tempo = max(30, op.Song.par.Tempo.eval() - 2)
+    elif name == 'btn_tempo_up' and L().state() == 'idle':
+        op.Song.par.Tempo = min(400, op.Song.par.Tempo.eval() + 2)
+    elif name == 'btn_tempo' and L().state() == 'idle':     # back to the chart's tempo
+        op.Song.op('setup').module.chart_changed(keep_key=True)
+    elif name == 'btn_me':
+        p = op.Visuals.op('landscape').par.Mestyle
+        p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
+    elif name == 'btn_take' and L().state() == 'idle':
+        op.Show.op('playback').module.select_next()
+    elif name == 'btn_play' and L().state() == 'idle':
+        op.Show.op('playback').module.toggle()
     elif name == 'btn_format' and L().state() == 'idle':   # never change size mid-take
         C = op.Config
         C.par.Preset.menuIndex = (C.par.Preset.menuIndex + 1) % len(C.par.Preset.menuNames)

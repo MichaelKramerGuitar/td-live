@@ -304,6 +304,7 @@ SH.par.Mode.menuLabels = [l for _, l in MODES]
 SH.par.Mode.readOnly = False
 
 logic = synced(SH, textDAT, 'logic', 'modules/show/logic.py', 0, 0)
+synced(SH, textDAT, 'playback', 'modules/show/playback.py', 0, 150)
 acts = synced(SH, parameterexecuteDAT, 'actions', 'modules/show/actions.py', 0, -150)
 acts.par.op = SH.path
 acts.par.pars = '*'
@@ -354,14 +355,38 @@ st_.par.alignx, st_.par.aligny = 'left', 'top'
 st_.par.positionx.expr = 'min(op.Config.par.Width, op.Config.par.Height) * 0.03'
 st_.par.positiony.expr = '-min(op.Config.par.Width, op.Config.par.Height) * 0.03'
 st_.par.bgalpha = 0
+# playback of takes (preview only; the recorder keeps recording `final`)
+pbk = ensure(O, moviefileinTOP, 'playback', 300, 250)
+pbk.par.playmode = 'specify'                              # index driven by show/playback (frame-exact, stops at end)
+pbk.par.indexunit = 'frames' if 'frames' in pbk.par.indexunit.menuNames else pbk.par.indexunit.eval()
+pbk.par.index.expr = ("(absTime.seconds - op.Show.fetch('t_play', absTime.seconds)) * op.Config.par.Fps "
+                      "if op.Show.fetch('playback', False) else 0")
+pfit = ensure(O, fitTOP, 'playback_fit', 450, 250)
+pfit.inputConnectors[0].connect(pbk)
+pfit.par.outputresolution = 'custom'
+pfit.par.resolutionw.expr, pfit.par.resolutionh.expr = W, H
+mon_src = ensure(O, switchTOP, 'monitor_source', 450, 100)
+mon_src.inputConnectors[0].connect(final)
+mon_src.inputConnectors[1].connect(pfit)
+mon_src.par.index.expr = "1 if op.Show.fetch('playback', False) else 0"
+pam = ensure(O, audiomovieCHOP, 'playback_audio', 450, 400)
+pam.par.moviefileintop = pbk.path
+pao = ensure(O, audiodeviceoutCHOP, 'playback_out', 600, 400)
+pao.inputConnectors[0].connect(pam)
+pao.par.driver = 'asio'
+_dev = menu_name_for_label(pao.par.device, op.Config.par.Audiodevice.eval())
+if _dev:
+    pao.par.device = _dev
+pao.par.active.expr = "op.Show.fetch('playback', False)"
+
 ov = ensure(O, compositeTOP, 'preview', 500, -100)
 ov.inputConnectors[0].connect(st_)
 ov.inputConnectors[1].connect(ct)
 if O.op('beat_dot') is not None:
     ov.inputConnectors[2].connect(O.op('beat_dot'))
-    ov.inputConnectors[3].connect(final)
+    ov.inputConnectors[3].connect(mon_src)
 else:
-    ov.inputConnectors[2].connect(final)
+    ov.inputConnectors[2].connect(mon_src)
 ov.par.operand = 'over'
 
 rec = ensure(O, moviefileoutTOP, 'recorder', 500, 100)
@@ -372,7 +397,13 @@ rec.par.audiochop = op.Sources.op('audio_out').path
 rec.par.record = False
 
 # ---------------------------------------------------------------- the TDlive window (monitor + buttons)
-PANEL_W, MON_H, BAR_H = 960, 540, 64
+PANEL_W, MON_H, ROW_H = 960, 540, 52
+ROWS = [   # (name, relative width) - row 1: performance, row 2: look + playback
+    [('btn_rehearse', 3), ('btn_record', 3), ('btn_chart', 4), ('btn_key', 3),
+     ('btn_tempo_down', 1), ('btn_tempo', 2), ('btn_tempo_up', 1)],
+    [('btn_mode', 4), ('btn_me', 3), ('btn_camera', 2), ('btn_format', 2), ('btn_take', 3), ('btn_play', 2)],
+]
+BAR_H = ROW_H * len(ROWS) + 6
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
 pn.par.w, pn.par.h = PANEL_W, MON_H + BAR_H
 pn.par.bgcolorr, pn.par.bgcolorg, pn.par.bgcolorb = 0.06, 0.06, 0.07
@@ -391,27 +422,40 @@ mc.par.colorb = 0.35
 meter.par.top = mc.path
 meter.par.x, meter.par.y, meter.par.h = 0, BAR_H - 4, 4
 meter.par.w.expr = "max(1, %d * op.Analysis.op('out')['level'])" % PANEL_W
-BUTTONS = [('btn_rehearse', 'Rehearse'), ('btn_record', 'Record'), ('btn_chart', 'Chart'), ('btn_key', 'Key'),
-           ('btn_mode', 'Mode'), ('btn_camera', 'Camera'), ('btn_format', 'Format')]
-bw = PANEL_W // len(BUTTONS)
-for i, (bn, label) in enumerate(BUTTONS):
-    b = ensure(pn, containerCOMP, bn, 200 * i, -200)
-    b.par.x, b.par.y, b.par.w, b.par.h = i * bw + 4, 6, bw - 8, BAR_H - 12
-    t = ensure(b, textTOP, 'label', 0, 0)
-    t.par.outputresolution = 'custom'
-    t.par.resolutionw, t.par.resolutionh = bw - 8, BAR_H - 12
-    t.par.fontsizex = 14
-    t.par.alignx, t.par.aligny = 'center', 'center'
-    t.par.bgcolorr, t.par.bgcolorg, t.par.bgcolorb, t.par.bgalpha = 0.16, 0.16, 0.18, 1
-    b.par.top = t.path
+for old_b in [c for c in pn.children if c.name.startswith('btn_')]:   # rebuild buttons each time
+    old_b.destroy()
+BUTTONS = []
+for r, row in enumerate(ROWS):
+    total = sum(wt for _, wt in row)
+    x = 0
+    y = BAR_H - 6 - ROW_H * (r + 1)
+    for bn, wt in row:
+        bw = int(PANEL_W * wt / total)
+        b = ensure(pn, containerCOMP, bn, 120 * len(BUTTONS), -200)
+        b.par.x, b.par.y, b.par.w, b.par.h = x + 3, y + 4, bw - 6, ROW_H - 8
+        t = ensure(b, textTOP, 'label', 0, 0)
+        t.par.outputresolution = 'custom'
+        t.par.resolutionw, t.par.resolutionh = bw - 6, ROW_H - 8
+        t.par.fontsizex = 14
+        t.par.alignx, t.par.aligny = 'center', 'center'
+        t.par.bgcolorr, t.par.bgcolorg, t.par.bgcolorb, t.par.bgalpha = 0.16, 0.16, 0.18, 1
+        b.par.top = t.path
+        BUTTONS.append((bn, bn))
+        x += bw
 LABELS = {
     'btn_rehearse': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse' else 'Rehearse'",
-    'btn_record': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '● Record'",
+    'btn_record': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '\u25cf Record'",
     'btn_chart': "op.Song.par.Chart.menuLabels[op.Song.par.Chart.menuIndex]",
     'btn_key': "'Key: ' + (op.Song.op('engine').module.song().key + ' (chart)' if op.Song.par.Key == 'default' and op.Song.op('engine').module.song() else op.Song.par.Key.eval())",
+    'btn_tempo_down': "'\u2212'",
+    'btn_tempo': "'%d bpm' % round(op.Song.par.Tempo.eval())",
+    'btn_tempo_up': "'+'",
     'btn_mode': "'Mode: ' + op.Show.par.Mode.menuLabels[op.Show.par.Mode.menuIndex]",
+    'btn_me': "'Me: ' + op.Visuals.op('landscape').par.Mestyle.eval().capitalize()",
     'btn_camera': "'Cam: ' + ('on' if op.Show.par.Camerainshot else 'off')",
     'btn_format': "'16:9' if op.Config.par.Preset == 'landscape_720' else '9:16'",
+    'btn_take': "op.Show.op('playback').module.label()",
+    'btn_play': "'\u25a0 Stop' if op.Show.op('playback').module.playing() else '\u25b6 Play'",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

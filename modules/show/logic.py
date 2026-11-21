@@ -22,6 +22,10 @@ def E():
     return op.Song.op('engine').module
 
 
+def PB():
+    return op.Show.op('playback').module
+
+
 def state():
     return S().fetch('state', 'idle')
 
@@ -34,6 +38,7 @@ def start(k=None):
     s = S()
     if state() != 'idle':
         return
+    PB().stop()                                        # starting a take or rehearsal ends playback
     k = k or s.par.Armed.eval()
     s.par.Armed = k
     s.store('kind', k)
@@ -48,11 +53,14 @@ def stop():
     s = S()
     if state() == 'running' and kind() == 'record':
         _record(False)
+        run("op.Show.op('playback').module.select_newest()", delayFrames=30)   # the take just made
     s.store('state', 'idle')
 
 
 def toggle():
-    if state() == 'idle':
+    if state() == 'idle' and PB().playing():
+        PB().stop()
+    elif state() == 'idle':
         start()
     else:
         stop()
@@ -103,6 +111,9 @@ def tick():
             small += '   %s  |  chorus %d  bar %d  |  %s' % (song, p.chorus, p.bar, p.chord.symbol)
     if st == 'idle':
         small = 'Space: start %s' % s.par.Armed.eval() + ('   |   ' + song if song else '')
+        pb = PB().tick()
+        if pb:
+            small = pb + '   (Space: stop)'
     ov = op.Output
     ov.op('count_text').par.text = big
     ov.op('status_text').par.text = small

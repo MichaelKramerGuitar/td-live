@@ -10,10 +10,11 @@ def refresh_menu():
     p.val = cur if cur in p.menuNames else ('blues_jazz' if 'blues_jazz' in p.menuNames else 'none')
 
 
-def chart_changed():
+def chart_changed(keep_key=False):
     """A new chart: key back to the chart's default, tempo to the chart's tempo."""
     E = op.Song.op('engine').module
-    op.Song.par.Key = 'default'
+    if not keep_key:
+        op.Song.par.Key = 'default'
     if not E.active():
         return
     import os
