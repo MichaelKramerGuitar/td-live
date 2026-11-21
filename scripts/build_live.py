@@ -77,6 +77,8 @@ if not has(C, 'Tuning'):
     C.par.Tuning = 'standard'
 C.par.Width.expr = "{'landscape_720': 1280, 'portrait_9x16': 720}[me.par.Preset.eval()]"
 C.par.Height.expr = "{'landscape_720': 720, 'portrait_9x16': 1280}[me.par.Preset.eval()]"
+if C.par.Fps.eval() == 60:                               # 2026-11-21: 30 is steadier on this laptop
+    C.par.Fps = 30
 project.cookRate = C.par.Fps.eval()
 
 # ---------------------------------------------------------------- sources
