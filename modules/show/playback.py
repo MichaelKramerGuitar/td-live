@@ -57,19 +57,15 @@ def play():
     if not sel or op.Show.op('logic').module.state() != 'idle':
         return
     mf = op.Output.op('playback')
-    mf.par.file = sel
-    mf.par.reloadpulse.pulse()
-    au = op.Output.op('playback_audio')        # the take's own soundtrack, read straight from the .mov
-    au.par.file = sel
-    au.par.cuepulse.pulse()
-    au.par.play = True
+    if mf.par.file.eval() != sel:
+        mf.par.file = sel
+    mf.par.cuepulse.pulse()                    # from the start; sound follows the movie (playback_audio)
     S().store('playback', True)
     S().store('t_play', absTime.seconds)
 
 
 def stop():
     S().store('playback', False)
-    op.Output.op('playback_audio').par.play = False
 
 
 def delete_armed():
@@ -85,16 +81,23 @@ def delete_selected():
         S().store('delete_armed_at', absTime.seconds)
         return
     S().store('delete_armed_at', -100)
-    stop()
-    op.Output.op('playback').par.file = ''      # let go of the files before deleting them
-    op.Output.op('playback_audio').par.file = ''
+    stop()                                      # 1) stop playing ...
+    S().store('delete_pending', sel)
+    run("op.Show.op('playback').module._release()", delayFrames=10)
+
+
+def _release():
+    """2) ... let go of the file a few frames later (never while it is playing) ..."""
+    sel = S().fetch('delete_pending', None)
+    if op.Output.op('playback').par.file.eval() == sel:
+        op.Output.op('playback').par.file = ''
     if op.Output.op('recorder').par.file.eval() == sel:
         op.Output.op('recorder').par.file = ''
-    S().store('delete_pending', sel)
-    run("op.Show.op('playback').module._finish_delete()", delayFrames=15)
+    run("op.Show.op('playback').module._finish_delete()", delayFrames=20)
 
 
 def _finish_delete():
+    """3) ... and delete it."""
     sel = S().fetch('delete_pending', None)
     if not sel:
         return

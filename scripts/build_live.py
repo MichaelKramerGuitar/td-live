@@ -357,10 +357,11 @@ st_.par.positiony.expr = '-min(op.Config.par.Width, op.Config.par.Height) * 0.03
 st_.par.bgalpha = 0
 # playback of takes (preview only; the recorder keeps recording `final`)
 pbk = ensure(O, moviefileinTOP, 'playback', 300, 250)
-pbk.par.playmode = 'specify'                              # index driven by show/playback (frame-exact, stops at end)
-pbk.par.indexunit = 'frames' if 'frames' in pbk.par.indexunit.menuNames else pbk.par.indexunit.eval()
-pbk.par.index.expr = ("(absTime.seconds - op.Show.fetch('t_play', absTime.seconds)) * op.Config.par.Fps "
-                      "if op.Show.fetch('playback', False) else 0")
+pbk.par.playmode = 'sequential'                           # plays from the cue point while Play is on
+pbk.par.index.expr = ''
+pbk.par.play.expr = "op.Show.fetch('playback', False)"
+if hasattr(pbk.par, 'extendright'):
+    pbk.par.extendright = 'hold' if 'hold' in pbk.par.extendright.menuNames else pbk.par.extendright.eval()
 pfit = ensure(O, fitTOP, 'playback_fit', 450, 250)
 pfit.inputConnectors[0].connect(pbk)
 pfit.par.outputresolution = 'custom'
@@ -369,12 +370,10 @@ mon_src = ensure(O, switchTOP, 'monitor_source', 450, 100)
 mon_src.inputConnectors[0].connect(final)
 mon_src.inputConnectors[1].connect(pfit)
 mon_src.par.index.expr = "1 if op.Show.fetch('playback', False) else 0"
-if O.op('playback_audio') is not None and O.op('playback_audio').OPType == 'audiomovieCHOP':
+if O.op('playback_audio') is not None and O.op('playback_audio').OPType != 'audiomovieCHOP':
     O.op('playback_audio').destroy()
-pam = ensure(O, audiofileinCHOP, 'playback_audio', 450, 400)   # plays the take's own soundtrack (.mov)
-pam.par.playmode = 'sequential'
-pam.par.repeat = 'off'
-pam.par.play = False
+pam = ensure(O, audiomovieCHOP, 'playback_audio', 450, 400)   # the take's sound, following the movie player
+pam.par.moviefileintop = pbk.path
 pao = ensure(O, audiodeviceoutCHOP, 'playback_out', 600, 400)
 pao.inputConnectors[0].connect(pam)
 pao.par.driver = 'asio'
