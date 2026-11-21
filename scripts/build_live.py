@@ -66,7 +66,7 @@ if not has(C, 'Preset'):
     pg2.appendStr('Guitarchans', label='Guitar Inputs (e.g. 1 2)')
     pg2.appendFloat('Inputgain', label='Input Gain')
     pg2.appendStr('Camera', label='Camera Device')
-    C.par.Fps = 60
+    C.par.Fps = 30                                       # steady 30 on this laptop (60 = jittery ~34-42)
     C.par.Takesfolder = 'Takes'
     C.par.Audiodevice = 'Focusrite USB ASIO'
     C.par.Guitarchans = '1 2'
@@ -369,8 +369,12 @@ mon_src = ensure(O, switchTOP, 'monitor_source', 450, 100)
 mon_src.inputConnectors[0].connect(final)
 mon_src.inputConnectors[1].connect(pfit)
 mon_src.par.index.expr = "1 if op.Show.fetch('playback', False) else 0"
-pam = ensure(O, audiomovieCHOP, 'playback_audio', 450, 400)
-pam.par.moviefileintop = pbk.path
+if O.op('playback_audio') is not None and O.op('playback_audio').OPType == 'audiomovieCHOP':
+    O.op('playback_audio').destroy()
+pam = ensure(O, audiofileinCHOP, 'playback_audio', 450, 400)   # plays the take's WAV
+pam.par.playmode = 'sequential'
+pam.par.repeat = 'off'
+pam.par.play = False
 pao = ensure(O, audiodeviceoutCHOP, 'playback_out', 600, 400)
 pao.inputConnectors[0].connect(pam)
 pao.par.driver = 'asio'
@@ -392,16 +396,21 @@ ov.par.operand = 'over'
 rec = ensure(O, moviefileoutTOP, 'recorder', 500, 100)
 rec.inputConnectors[0].connect(final)
 rec.par.type = 'movie'
-rec.par.videocodec = 'mjpa'
+rec.par.videocodec = 'hap'                               # GPU-cheap: ~32 fps while recording vs ~15 with MJPEG
 rec.par.audiochop = op.Sources.op('audio_out').path
 rec.par.record = False
+twav = ensure(O, audiofileoutCHOP, 'take_wav', 650, 100)  # the guitar as a WAV beside every take (playback, mixing)
+twav.inputConnectors[0].connect(op.Sources.op('audio_out'))
+twav.par.filetype = 'wav'
+twav.par.record = False
 
 # ---------------------------------------------------------------- the TDlive window (monitor + buttons)
 PANEL_W, MON_H, ROW_H = 960, 540, 52
 ROWS = [   # (name, relative width) - row 1: performance, row 2: look + playback
     [('btn_rehearse', 3), ('btn_record', 3), ('btn_chart', 4), ('btn_key', 3),
      ('btn_tempo_down', 1), ('btn_tempo', 2), ('btn_tempo_up', 1)],
-    [('btn_mode', 4), ('btn_me', 3), ('btn_camera', 2), ('btn_format', 2), ('btn_take', 3), ('btn_play', 2)],
+    [('btn_mode', 4), ('btn_me', 3), ('btn_camera', 2), ('btn_format', 2), ('btn_take', 3), ('btn_play', 2),
+     ('btn_delete', 2)],
 ]
 BAR_H = ROW_H * len(ROWS) + 6
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
@@ -456,6 +465,7 @@ LABELS = {
     'btn_format': "'16:9' if op.Config.par.Preset == 'landscape_720' else '9:16'",
     'btn_take': "op.Show.op('playback').module.label()",
     'btn_play': "'\u25a0 Stop' if op.Show.op('playback').module.playing() else '\u25b6 Play'",
+    'btn_delete': "'Delete?' if op.Show.op('playback').module.delete_armed() else 'Delete'",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

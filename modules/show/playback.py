@@ -59,12 +59,56 @@ def play():
     mf = op.Output.op('playback')
     mf.par.file = sel
     mf.par.reloadpulse.pulse()
+    au = op.Output.op('playback_audio')
+    wav = sel[:-4] + '.wav'
+    au.par.file = wav if os.path.exists(os.path.join(project.folder, wav)) else ''
+    au.par.cuepulse.pulse()
+    au.par.play = True
     S().store('playback', True)
     S().store('t_play', absTime.seconds)
 
 
 def stop():
     S().store('playback', False)
+    op.Output.op('playback_audio').par.play = False
+
+
+def delete_armed():
+    return absTime.seconds - S().fetch('delete_armed_at', -100) < 3.0
+
+
+def delete_selected():
+    """First click arms (label 'Delete?'), a second click within 3 s deletes the selected take (.mov + .wav)."""
+    sel = selected()
+    if not sel:
+        return
+    if not delete_armed():
+        S().store('delete_armed_at', absTime.seconds)
+        return
+    S().store('delete_armed_at', -100)
+    stop()
+    op.Output.op('playback').par.file = ''      # let go of the files before deleting them
+    op.Output.op('playback_audio').par.file = ''
+    if op.Output.op('recorder').par.file.eval() == sel:
+        op.Output.op('recorder').par.file = ''
+        op.Output.op('take_wav').par.file = ''
+    S().store('delete_pending', sel)
+    run("op.Show.op('playback').module._finish_delete()", delayFrames=15)
+
+
+def _finish_delete():
+    sel = S().fetch('delete_pending', None)
+    if not sel:
+        return
+    S().store('delete_pending', None)
+    for f in (sel, sel[:-4] + '.wav'):
+        path = os.path.join(project.folder, f)
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+        except OSError as e:
+            debug('could not delete %s: %s' % (f, e))
+    S().store('take_selected', None)
 
 
 def toggle():

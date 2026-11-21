@@ -39,7 +39,7 @@ if not has(L, 'Flip'):
     pg2.appendFloat('Fov', label='Field Of View')
     for k, v in (('Depth', 0.9), ('Spread', 1.0), ('Contrast', 2.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
                  ('Planetmin', 0.6), ('Planetclarity', 0.55), ('Planetradiance', 0.5),
-                 ('Meamount', 0.5), ('Mereact', 0.85), ('Mefade', 1.2), ('Metint', True), ('Mecut', 0.32), ('Mefocus', 0.6), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
+                 ('Meamount', 0.9), ('Mereact', 0.7), ('Mefade', 1.5), ('Metint', True), ('Mecut', 0.16), ('Mefocus', 0.75), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
         L.par[k] = v
         L.par[k].default = v
 
@@ -73,7 +73,7 @@ fb = ensure(L, feedbackTOP, 'feedback', 350, 100)
 smooth = ensure(L, crossTOP, 'smooth', 500, 0)            # eases the surface from chord to chord
 smooth.inputConnectors[0].connect(fb)
 smooth.inputConnectors[1].connect(field)
-smooth.par.cross.expr = 'parent().par.Ease'
+smooth.par.cross.expr = '1 - (1 - parent().par.Ease) ** (60.0 / max(1, project.cookRate))'   # same speed at any fps
 smooth.par.format = 'rgba32float' if 'rgba32float' in smooth.par.format.menuNames else smooth.par.format.eval()
 fb.inputConnectors[0].connect(field)
 fb.par.top = smooth.path
@@ -296,7 +296,7 @@ mv.par.operand = 'multiply'
 me = ensure(L, levelTOP, 'me', 2550, -900)
 me.inputConnectors[0].connect(mv)
 me.par.brightness1.expr = ("parent().par.Meamount * (1 - parent().par.Mereact + parent().par.Mereact * "
-                           "min(1, op('energy')['level'] * 1.6))")
+                           "min(1, op('energy')['level'] * 3.0))")
 
 final_l = ensure(L, compositeTOP, 'landscape_all', 2550, 0)
 final_l.inputConnectors[0].connect(glow)

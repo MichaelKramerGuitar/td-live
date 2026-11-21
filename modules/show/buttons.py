@@ -33,6 +33,8 @@ def onOffToOn(panelValue):
         p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
     elif name == 'btn_take' and L().state() == 'idle':
         op.Show.op('playback').module.select_next()
+    elif name == 'btn_delete' and L().state() == 'idle':
+        op.Show.op('playback').module.delete_selected()
     elif name == 'btn_play' and L().state() == 'idle':
         op.Show.op('playback').module.toggle()
     elif name == 'btn_format' and L().state() == 'idle':   # never change size mid-take
