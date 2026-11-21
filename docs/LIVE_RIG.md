@@ -37,6 +37,7 @@ exec(open(project.folder + '/scripts/build_live.py', encoding='utf-8').read(), g
 | `sources` | `op.Sources` | `audio_in` (Focusrite USB ASIO) → `guitar` (inputs averaged, mono) and `audio_out` (for takes); `camera` → `cam` (fitted to the format; black when the camera is off/missing) |
 | `analysis` | `op.Analysis` | **the bus**, `analysis/out` |
 | `visuals` | `op.Visuals` | one COMP per mode, each with `out1`: `mirror`, `ripples` |
+| `visuals/landscape` | | Michael's fretboard landscape (built by `scripts/build_landscape.py`, shaders in `modules/landscape/`): `song/positions` -> `masses` / `mass_colors` (Script TOPs) -> `field` (GLSL: well depth + colour) -> `smooth` (eases between chords) -> line grids `terrain` / `frets` / `strings` (GLSL MAT sinks them into the wells) + `planets` (instanced, root/3rd/7th) -> `render` -> glow. Parameters: Flip (low string on the right), Depth, Spread, Contrast, Ease, Brightness, Planet Size, Planets From Weight; Camera page: Eye Height, Eye Behind Bridge, Look Point, Field Of View |
 | `output` | `op.Output` | `modes` switch → `final` (exactly what is recorded) → `recorder`; `preview` = final + countdown/status |
 | `song` | `op.Song` | Chart / Key / Tempo / Count-in Bars / Frets; `engine` (form clock + harmony, from `tools/`); outputs `now` (where we are), `tones` (current chord-scale: note, interval, role, weight, colour), `positions` (every fretboard position of it, for the current Config › Guitar › Tuning), `out` CHOP (playing, counting_in, beat, bar, chorus, beat_phase, bar_phase, chord_index) |
 | `show` | `op.Show` | Rehearse / Record / Stop / Armed / Mode / Me In Shot / Countdown / Status; the TDlive window (`panel`, `window`); keys |
@@ -75,6 +76,14 @@ chartlib) so it can be tested without TouchDesigner (`python -m pytest tests`). 
   OBS as the capture app feeding TD.
 - If the camera ever sticks at "Initializing...", set Signal Format back to 640x480, or delete `sources/camera`,
   add a fresh Video Device In TOP named `camera` by hand, pick the C920 and connect it to `camera_or_black`.
+
+### Landscape gotchas (TD 2025)
+
+- GLSL TOPs premultiply RGB by alpha by default. For data textures (positions, heights) turn
+  `Premultiply RGB by Alpha` off, or x/y/z get multiplied by the alpha channel.
+- A Sphere SOP with Type = Polygon plus custom rows/cols drew nothing when instanced; the default sphere works.
+- TOP to CHOP converts colour space (sRGB) by default; for data set Output Color Space to `passthrough`.
+- An instancing Geometry COMP that got into a bad state stayed broken; the build always makes it fresh.
 
 ### Gotchas carried over from td-experiment
 
