@@ -115,3 +115,6 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   steady 30 fps rig; Me brightened; playback sound via Audio Movie CHOP; Delete button (confirm, deferred file
   removal because TD holds played movies). TD froze once (Audio File In on a .mov stopped + cleared at once);
   after the forced restart, the build script restored everything that hadn't been saved.
+- **2026-11-21 — session 2g.** Export button (ffmpeg -> 1080p H.264 mp4 in Exports/), Find Guitar Input, Me as a
+  corner tile. Takes recorded silent audio: investigating (guitar is on Focusrite input 1; input numbering
+  confirmed 0-based in TD).

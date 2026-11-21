@@ -22,6 +22,15 @@
    **Delete** (second row): click once (it reads **Delete?**), again within 4 s to delete the selected take. It
    disappears from the list at once; the file is removed as soon as Windows lets go of it (TD can keep a played
    movie open), at the latest at the next start (pending list: `Takes/_delete_pending.txt`).
+   **Export** makes a playable copy of the selected take in `Exports/`: H.264 + AAC .mp4 upscaled to 1080p
+   (1920x1080, or 1080x1920 for 9:16), ready for YouTube/Instagram, in the background. Needs ffmpeg once:
+   `winget install Gyan.FFmpeg` in a terminal (or set `config` › Export › ffmpeg.exe). Takes are the staging
+   area (Hap: perfect for recording, but most players can't open it); exports are what you keep and share.
+7. **Me** (landscape) cycles Outline / Ghost / Negative behind the land, then a corner tile ↖ ↗ ↙ ↘ (your
+   natural camera, like a speaker on a call). Tile size, look (natural or styled) and opacity: `visuals/landscape`
+   › Me page.
+8. **Find Guitar Input** (`config` › Devices): press it and play for 6 s; it listens to every input and sets
+   Guitar Inputs to the one(s) carrying the guitar. Result in Input Info.
 6. With a chart, the countdown is a **musical count-in**: one bar of beats at the tempo (`song` › Count-in Bars),
    ending on the downbeat of bar 1. The status line then shows chorus, bar and chord. Tempo: `song` › Tempo
    (each chart has a default).
