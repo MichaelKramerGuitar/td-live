@@ -68,10 +68,8 @@ def toggle():
 
 def _record(on):
     rec = op.Output.op('recorder')
-    wav = op.Output.op('take_wav')
     if not on:
         rec.par.record = False
-        wav.par.record = False
         return
     folder = os.path.join(project.folder, op.Config.par.Takesfolder.eval())
     os.makedirs(folder, exist_ok=True)
@@ -79,10 +77,8 @@ def _record(on):
     mode = S().par.Mode.eval()
     name = '%s/%s_%s_%s.mov' % (op.Config.par.Takesfolder.eval(), stamp, mode, op.Config.par.Preset.eval())
     rec.par.file = name                       # name the take FIRST ...
-    wav.par.file = name[:-4] + '.wav'          # (the guitar alone, same name)
     S().store('lasttake', name)
-    run("op.Output.op('recorder').par.record = True; op.Output.op('take_wav').par.record = True",
-        delayFrames=1)                         # ... then start both together (never overwrites)
+    run("op.Output.op('recorder').par.record = True", delayFrames=1)   # ... then start (never overwrites)
 
 
 def _clock(secs):

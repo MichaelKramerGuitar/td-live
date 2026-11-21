@@ -59,9 +59,8 @@ def play():
     mf = op.Output.op('playback')
     mf.par.file = sel
     mf.par.reloadpulse.pulse()
-    au = op.Output.op('playback_audio')
-    wav = sel[:-4] + '.wav'
-    au.par.file = wav if os.path.exists(os.path.join(project.folder, wav)) else ''
+    au = op.Output.op('playback_audio')        # the take's own soundtrack, read straight from the .mov
+    au.par.file = sel
     au.par.cuepulse.pulse()
     au.par.play = True
     S().store('playback', True)
@@ -78,7 +77,7 @@ def delete_armed():
 
 
 def delete_selected():
-    """First click arms (label 'Delete?'), a second click within 3 s deletes the selected take (.mov + .wav)."""
+    """First click arms (label 'Delete?'), a second click within 3 s deletes the selected take (.mov, and a .wav of the same name if there is one)."""
     sel = selected()
     if not sel:
         return
@@ -91,7 +90,6 @@ def delete_selected():
     op.Output.op('playback_audio').par.file = ''
     if op.Output.op('recorder').par.file.eval() == sel:
         op.Output.op('recorder').par.file = ''
-        op.Output.op('take_wav').par.file = ''
     S().store('delete_pending', sel)
     run("op.Show.op('playback').module._finish_delete()", delayFrames=15)
 

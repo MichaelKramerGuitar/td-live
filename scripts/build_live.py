@@ -371,7 +371,7 @@ mon_src.inputConnectors[1].connect(pfit)
 mon_src.par.index.expr = "1 if op.Show.fetch('playback', False) else 0"
 if O.op('playback_audio') is not None and O.op('playback_audio').OPType == 'audiomovieCHOP':
     O.op('playback_audio').destroy()
-pam = ensure(O, audiofileinCHOP, 'playback_audio', 450, 400)   # plays the take's WAV
+pam = ensure(O, audiofileinCHOP, 'playback_audio', 450, 400)   # plays the take's own soundtrack (.mov)
 pam.par.playmode = 'sequential'
 pam.par.repeat = 'off'
 pam.par.play = False
@@ -399,10 +399,8 @@ rec.par.type = 'movie'
 rec.par.videocodec = 'hap'                               # GPU-cheap: ~32 fps while recording vs ~15 with MJPEG
 rec.par.audiochop = op.Sources.op('audio_out').path
 rec.par.record = False
-twav = ensure(O, audiofileoutCHOP, 'take_wav', 650, 100)  # the guitar as a WAV beside every take (playback, mixing)
-twav.inputConnectors[0].connect(op.Sources.op('audio_out'))
-twav.par.filetype = 'wav'
-twav.par.record = False
+if O.op('take_wav') is not None:
+    O.op('take_wav').destroy()
 
 # ---------------------------------------------------------------- the TDlive window (monitor + buttons)
 PANEL_W, MON_H, ROW_H = 960, 540, 52
