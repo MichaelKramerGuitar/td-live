@@ -112,6 +112,13 @@ chartlib) so it can be tested without TouchDesigner (`python -m pytest tests`). 
 - TOP to CHOP converts colour space (sRGB) by default; for data set Output Color Space to `passthrough`.
 - An instancing Geometry COMP that got into a bad state stayed broken; the build always makes it fresh.
 
+### Timeline gotcha
+
+- Execute DAT frame callbacks and TD's `run(delayFrames=...)` only advance while the TIMELINE plays, and Space in
+  the network editor pauses it - which froze the show (a take never started). The rig now keeps the timeline
+  playing: a watchdog on the real clock (`run(delayMilliSeconds=...)`, which keeps going while paused) resumes it
+  within 250 ms, and Space also resumes it straight away.
+
 ### Takes gotchas
 
 - TD can keep a played movie open after playback (even with the File cleared), and Windows refuses to delete an

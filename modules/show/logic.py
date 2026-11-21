@@ -24,6 +24,20 @@ def S():
 _LATER = []
 
 
+def watchdog(gen=None):
+    """Keeps the timeline playing. The show's per-frame tick (and every frame-timed thing) only runs while the
+    timeline plays, and Space in the network editor pauses it. Runs on the real clock (delayMilliSeconds), which
+    keeps going while paused, and reschedules itself every 250 ms. Start it with watchdog()."""
+    if gen is None:
+        gen = S().fetch('wd_gen', 0) + 1
+        S().store('wd_gen', gen)
+    if gen != S().fetch('wd_gen', 0):
+        return                                          # an older watchdog: let it end
+    if not op('/').time.play:
+        op('/').time.play = True
+    run("op.Show.op('logic').module.watchdog(%d)" % gen, delayMilliSeconds=250)
+
+
 def later(fn, frames=1):
     _LATER.append([frames, fn])
 

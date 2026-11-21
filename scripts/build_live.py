@@ -512,6 +512,8 @@ win.par.title = 'TDlive'
 win.par.winw, win.par.winh = PANEL_W, MON_H + BAR_H
 win.par.size = 'custom' if 'custom' in win.par.size.menuNames else win.par.size.eval()
 
+op('/').time.play = True
+SH.op('logic').module.watchdog()                       # keeps the timeline playing from now on
 REPORT['errors'] = {o.path: o.errors() for o in P.findChildren(depth=None) if o.errors() and 'mcp_webserver' not in o.path}
 REPORT['warnings'] = {o.path: o.warnings() for o in P.findChildren(depth=None) if o.warnings() and 'mcp_webserver' not in o.path}
 build_report = REPORT

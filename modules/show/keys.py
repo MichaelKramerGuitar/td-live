@@ -11,6 +11,7 @@ def onOffToOn(channel, sampleIndex, val, prev):
     n = channel.name
     if n.endswith('space'):
         L().toggle()
+        run("op('/').time.play = True", delayMilliSeconds=60)   # Space in the editor also pauses the timeline
     elif n.endswith('esc'):
         L().stop()
     elif n.endswith('r') and L().state() == 'idle':
