@@ -15,6 +15,7 @@ if not has(L, 'Flip'):
     pg.appendToggle('Flip', label='Low String On The Right')
     pg.appendFloat('Depth', label='Well Depth')
     pg.appendFloat('Spread', label='Well Width')
+    pg.appendFloat('Contrast', label='Mass Contrast (depth ~ weight^n)')
     pg.appendFloat('Ease', label='Chord Morph Speed')
     pg.appendFloat('Brightness', label='Line Brightness')
     pg.appendFloat('Planetsize', label='Planet Size')
@@ -24,7 +25,7 @@ if not has(L, 'Flip'):
     pg2.appendFloat('Camback', label='Eye Behind Bridge')
     pg2.appendFloat('Lookdown', label='Look Point Below Neck')
     pg2.appendFloat('Fov', label='Field Of View')
-    for k, v in (('Depth', 0.7), ('Spread', 1.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
+    for k, v in (('Depth', 0.9), ('Spread', 1.0), ('Contrast', 2.0), ('Ease', 0.12), ('Brightness', 0.9), ('Planetsize', 0.14),
                  ('Planetmin', 0.6), ('Camheight', 3.2), ('Camback', 7.0), ('Lookdown', 3.0), ('Fov', 44)):
         L.par[k] = v
         L.par[k].default = v
@@ -51,6 +52,9 @@ field.par.vec0name = 'uY'
 field.par.vec0valuex, field.par.vec0valuey = YMIN, YMAX
 field.par.vec0valuez.expr = "0.5 * parent().par.Spread"
 field.par.vec0valuew.expr = "0.024 * parent().par.Spread"
+field.par.vec1name = 'uK'
+field.par.vec1valuex.expr = 'parent().par.Contrast'
+field.par.premultrgbbyalpha = False                      # data, not colour: never premultiply
 
 fb = ensure(L, feedbackTOP, 'feedback', 350, 100)
 smooth = ensure(L, crossTOP, 'smooth', 500, 0)            # eases the surface from chord to chord
@@ -127,6 +131,7 @@ plx.par.outputresolution = 'custom'
 plx.par.resolutionw.expr = "op('masses').width"
 plx.par.resolutionh = 1
 plx.par.format = 'rgba32float'
+plx.par.premultrgbbyalpha = False
 plx.par.vec0name = 'uY'
 plx.par.vec0valuex, plx.par.vec0valuey = YMIN, YMAX
 plx.par.vec1name = 'uWorld'
@@ -136,13 +141,14 @@ plx.par.vec1valuew.expr = 'parent().par.Planetsize'
 plx.par.vec0valuez.expr = 'parent().par.Planetmin'
 pmat = ensure(L, constantMAT, 'mat_planets', 900, -150)
 pmat.par.colorr = pmat.par.colorg = pmat.par.colorb = 1.0
-pl = ensure(L, geometryCOMP, 'planets', 1100, -150)
+old_pl = L.op('planets')
+if old_pl is not None:                                     # always fresh (a broken instancing state can stick)
+    old_pl.destroy()
+pl = L.create(geometryCOMP, 'planets')
+pl.nodeX, pl.nodeY = 1100, -150
 for c in list(pl.children):
-    if c.name != 'ball':
-        c.destroy()
-ball = ensure(pl, sphereSOP, 'ball', 0, 0)
-ball.par.type = 'polygon'
-ball.par.rows, ball.par.cols = 10, 14
+    c.destroy()
+ball = pl.create(sphereSOP, 'ball')                       # default sphere: custom type/rows broke instancing
 ball.render = ball.display = True
 pl.par.instancing = True
 pl.par.instanceop = plx.path

@@ -2,6 +2,7 @@
 // Inputs: 0 = masses (string, y, weight, valid), 1 = mass colours (r, g, b, weight).
 // Out: rgb = palette colour of the nearest masses (weighted), a = depth of the well (sum of gaussians).
 uniform vec4 uY;      // ymin, ymax, sigma across (strings), sigma along (scale-length fraction)
+uniform vec4 uK;      // x = contrast: depth ~ weight^contrast (2 = root and guide tones shape the land)
 out vec4 fragColor;
 void main()
 {
@@ -17,9 +18,10 @@ void main()
         float ds = (s - m.x) / uY.z;
         float dy = (y - m.y) / uY.w;
         float g = exp(-0.5 * (ds * ds + dy * dy));
-        h += m.z * g;
-        col += c.rgb * m.z * g;
-        wsum += m.z * g;
+        float w = pow(m.z, uK.x) * g;
+        h += w;
+        col += c.rgb * w;
+        wsum += w;
     }
     col = wsum > 1e-4 ? col / wsum : vec3(0.0);
     fragColor = TDOutputSwizzle(vec4(col, h));
