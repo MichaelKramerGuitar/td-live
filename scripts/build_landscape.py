@@ -42,7 +42,7 @@ if not has(L, 'Gesture'):                                  # melodic gesture whi
     pg5.appendFloat('Gesturedrift', label='Drift (zephyr)')
     pg5.appendFloat('Gestureclarity', label='Pitch Confidence Needed (0..1)')
     pg5.appendFloat('Gesturesoft', label='Softness')
-    for k, v in (('Gesture', True), ('Gesturetrail', 3.0), ('Gesturesize', 0.11), ('Gesturerise', 0.35),
+    for k, v in (('Gesture', True), ('Gesturetrail', 3.0), ('Gesturesize', 0.07), ('Gesturerise', 0.35),
                  ('Gesturedrift', 0.3), ('Gestureclarity', 0.8), ('Gesturesoft', 0.6)):
         L.par[k] = v
         L.par[k].default = v

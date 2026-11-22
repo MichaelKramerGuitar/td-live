@@ -116,10 +116,12 @@ def onCook(scriptOp):
             head = (head[0] + k * (target[0] - head[0]), head[1] + k * (target[1] - head[1]))
             st['head'] = head
             energy = min(1.0, level * 1.5)
-            size = L.par.Gesturesize.eval() * (0.6 + 0.7 * energy + (0.8 if new_note else 0.0) + 0.6 * hit)
-            r, g, b = st.get('rgb', (1, 1, 1))
-            st['puffs'].append([head[0], 0.25 + 0.3 * hit, head[1], size, r, g, b, 0.0,
-                                random.uniform(0, 6.28), 1.0 if new_note else 0.55])
+            st['frame'] = st.get('frame', 0) + 1
+            if new_note or st['frame'] % 2 == 0:            # held notes: a faint puff every other frame
+                size = L.par.Gesturesize.eval() * (0.7 + 0.4 * energy + (0.6 if new_note else 0.0))
+                r, g, b = st.get('rgb', (1, 1, 1))
+                st['puffs'].append([head[0], 0.25 + 0.3 * hit, head[1], size, r, g, b, 0.0,
+                                    random.uniform(0, 6.28), 0.55 if new_note else 0.12])
     else:
         st['head'] = None if clarity < 0.3 else st['head']
 
@@ -142,7 +144,7 @@ def onCook(scriptOp):
     chans = {c: scriptOp.appendChan(c) for c in ('tx', 'ty', 'tz', 's', 'r', 'g', 'b', 'a')}
     for i, p in enumerate(st['puffs']):
         fade = (1.0 - p[7] / life) ** 1.5 * p[9]
-        grow = 1.0 + 1.6 * (p[7] / life)                    # puffs swell as they dissipate
+        grow = 1.0 + 0.9 * (p[7] / life)                    # puffs swell a little as they dissipate
         vals = (p[0], p[1], p[2], p[3] * grow, p[4] * fade, p[5] * fade, p[6] * fade, fade)
         for c, v in zip(('tx', 'ty', 'tz', 's', 'r', 'g', 'b', 'a'), vals):
             chans[c][i] = v
