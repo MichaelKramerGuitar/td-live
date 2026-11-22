@@ -49,6 +49,7 @@ most useful booking material.
 | **M2 harmony engine** | key-free (Roman numeral) charts; spelling in any key by letter arithmetic; chord-scales; weights (root > 3rd/7th > 5th > tensions); fretboard positions (`tools/harmony.py`) | ✅ 2026-11-21: blues + rhythm changes spell correctly in all 15 keys (tests) |
 | **M3 form clock** | load a chart in TD; pick key + tempo in the TDlive window; count-off = bar 1; bar/section/chord clock on the bus; loops choruses | the visual knows which bar and chord it's on — ✅ 2026-11-21 (song COMP, musical count-in, Chart/Key buttons) |
 | **M4 fretboard landscape** | Michael's image (below), first from the chart alone: wells at every chord-scale position, mass = weight, palette colours | the neck bends with the changes — ✅ 2026-11-21 v1 (60 fps; `docs/img/landscape_blues_F.jpg`) |
+| **live-01** | tag: the rig ready for real takes (`docs/releases/live-01-fretboard-landscape.md`) | ✅ 2026-11-22 |
 | **M5 listening** | pitch-class (chroma) analysis; played notes become dynamic masses ("melodic nodes"); later: key suggestion from the first bars | the landscape answers what's played |
 | **M6 the circles** | three-circle notation drawn live from chart + audio | "playing duo" |
 
