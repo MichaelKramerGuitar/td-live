@@ -391,7 +391,7 @@ wmix = ensure(L, compositeTOP, 'whisp_lit', 2100, -1600)
 wmix.inputConnectors[0].connect(rw)
 wmix.inputConnectors[1].connect(wsoft)
 wmix.par.operand = 'add'
-wgain = ensure(L, levelTOP, 'whisp', 2250, -1600)
+wgain = ensure(L, levelTOP, 'whisp_out', 2250, -1600)
 wgain.inputConnectors[0].connect(wmix)
 wgain.par.opacity.expr = '1 if parent().par.Gesture else 0'
 
