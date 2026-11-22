@@ -20,8 +20,8 @@ if not has(SH, 'Click'):
 
 K = ensure(P, baseCOMP, 'click', 1000, 200)
 K.par.opshortcut = 'Click'
-ON_V = "op.Show.par.Click in ('visual', 'both')"
-ON_A = "op.Show.par.Click in ('audio', 'both')"
+ON_V = "op.Show.par.Click.eval() in ('visual', 'both')"
+ON_A = "op.Show.par.Click.eval() in ('audio', 'both')"
 ENV = "op.Song.op('out')['active'] * max(0.0, 1.0 - op.Song.op('out')['tick'] * 4.0)"   # flash decays in 1/4 beat
 
 # ---- audio tick
@@ -46,6 +46,7 @@ if dev:
     aout.par.device = dev
 REPORT['click_device'] = dev or 'NOT FOUND'
 aout.par.active.expr = ON_A
+aout.par.active.mode = ParMode.EXPRESSION          # (setting .expr alone left it CONSTANT = off: no audible click)
 
 # ---- visual tick: a square that flashes on every beat (warm on beat 1), beat number, bar and chords
 CW, CH = 360, 360

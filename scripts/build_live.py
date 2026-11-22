@@ -416,6 +416,7 @@ _dev = menu_name_for_label(pao.par.device, op.Config.par.Audiodevice.eval())
 if _dev:
     pao.par.device = _dev
 pao.par.active.expr = "op.Show.fetch('playback', False)"
+pao.par.active.mode = ParMode.EXPRESSION                  # (setting .expr alone left it CONSTANT = off: silent playback)
 
 ov = ensure(O, compositeTOP, 'preview', 500, -100)
 ov.inputConnectors[0].connect(st_)
