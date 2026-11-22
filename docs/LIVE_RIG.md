@@ -47,7 +47,16 @@ Needs a chart (it follows the song's tempo, including the count-in).
 - Takes record only the guitar input (`sources/audio_out`) and `output/final`, so neither click can get into one.
 - The tick is frame-timed (±8 ms at 60 fps): fine for keeping your place, not a studio metronome.
 
-Takes are Motion-JPEG `.mov` at the output size and 60 fps with the guitar's audio, named
+### Gesture whisp (your melodic line over the fretboard)
+
+`visuals/landscape` › Gesture page. When the pitch follower is sure you're playing single notes, a coloured whisp
+(the note's synesthesia colour) follows the line over the fretboard, at a likely position near where your hand
+already is (it guesses string/fret, so it's the gesture and range, not a transcription). New notes puff brighter;
+the trail rises, drifts and dissolves. Chords and noise don't trigger it.
+**Gesture** on/off, **Trail** (seconds), **Size**, **Rise**, **Drift**, **Needs Clarity** (raise it if chords
+leak in, lower it if notes are missed), **Softness**. Silence gate: `analysis` › Pitch Gate.
+
+Takes are Hap `.mov` at the output size and 30 fps with the guitar's audio, named
 `Takes/<date>_<time>_<mode>_<format>.mov`. They're big; convert/upscale with ffmpeg as in td-experiment.
 
 ## How it's built
@@ -76,9 +85,12 @@ exec(open(project.folder + '/scripts/build_live.py', encoding='utf-8').read(), g
 | `level` | overall loudness (RMS × Input Gain), quick attack, ~0.25 s release |
 | `hit` | attack envelope: jumps to 1 when the level leaps above its own recent average, decays in ~0.35 s |
 | `low` / `mid` / `high` | loudness below 250 Hz / around 1 kHz / above 3 kHz |
+| `midi` | the single note you're playing (MIDI number, not 0..1; holds the last note when unclear) — `analysis/pitch`, McLeod pitch follower, 70–1300 Hz |
+| `clarity` | 0..1 how sure the pitch follower is: ~0.9+ single notes, ~0.2 chords, ~0 noise |
+| `freq` | the same note in Hz |
 
 A mode may read the bus, `op.Sources.op('cam')` and `op.Config`, and nothing else. That's what keeps modes
-swappable (same idea as td-experiment's bus). M2 adds pitch channels (chroma) here.
+swappable (same idea as td-experiment's bus).
 
 ### Logic you can edit (`modules/show/`)
 

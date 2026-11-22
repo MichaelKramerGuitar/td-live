@@ -124,3 +124,10 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   sends 2 channels to the recorder (20 channels made it silently write nothing); (2) Space in the network editor
   paused the timeline, which froze the show (Execute DAT frame callbacks + run(delayFrames) follow the timeline) -
   a real-clock watchdog now keeps it playing. Corner tile uses the outline look.
+- **2026-11-22 — session 2i.** Release notes for `live-01-fretboard-landscape` (tag push is blocked from this
+  session; Michael publishes it in the GitHub UI). Audible click fixed: `click/to_interface` Active was stuck in
+  CONSTANT mode despite its expression (same for `playback_out`); build now forces expression mode. M5a: pitch
+  follower (`modules/analysis/pitch.py`, McLeod NSDF, bus gains midi/clarity/freq; offline 0/49 errors MIDI 40–88)
+  and the gesture whisp (`modules/landscape/gesture.py`: hand-position string/fret guess, palette colour, puffs that
+  rise/drift/fade). Cook-loop lesson: Script CHOP memory via `scriptOp.store/fetch` re-cooks itself in a loop —
+  keep per-op state in a module-level dict. Verified live: tracks Michael's line at ~0.95 clarity.
