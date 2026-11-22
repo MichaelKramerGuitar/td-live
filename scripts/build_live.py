@@ -223,8 +223,15 @@ hit = ensure(A, renameCHOP, 'hit', 1250, 150)
 hit.inputConnectors[0].connect(trig)
 hit.par.renamefrom, hit.par.renameto = '*', 'hit'
 
+# pitch follower (single-note lines): midi, clarity (0..1), freq - see modules/analysis/pitch.py
+if not has(A, 'Pitchgate'):
+    page(A, 'Pitch').appendFloat('Pitchgate', label='Pitch Gate (input RMS)')
+    A.par.Pitchgate, A.par.Pitchgate.default = 0.004, 0.004
+pcb = synced(A, textDAT, 'pitch_callbacks', 'modules/analysis/pitch.py', 1100, 350)
+pitch = ensure(A, scriptCHOP, 'pitch', 1250, 300)
+pitch.par.callbacks = pcb.path
 merge = ensure(A, mergeCHOP, 'merge', 1400, 0)
-for i, o in enumerate([rnl, hit] + bands):
+for i, o in enumerate([rnl, hit] + bands + [pitch]):
     merge.inputConnectors[i].connect(o)
 bus = ensure(A, nullCHOP, 'out', 1550, 0)
 bus.inputConnectors[0].connect(merge)

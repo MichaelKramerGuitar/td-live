@@ -33,6 +33,19 @@ if not has(L, 'Flip'):
     pg3.appendFloat('Mecut', label='Cut The Room (black level)')
     pg3.appendFloat('Mefocus', label='Focus (vignette: smaller = only the centre)')
     pg2 = page(L, 'Camera')
+if not has(L, 'Gesture'):                                  # melodic gesture whisp over the neck
+    pg5 = page(L, 'Gesture')
+    pg5.appendToggle('Gesture', label='Melodic Gesture Whisp')
+    pg5.appendFloat('Gesturetrail', label='Trail Length (s)')
+    pg5.appendFloat('Gesturesize', label='Whisp Size')
+    pg5.appendFloat('Gesturerise', label='Rise')
+    pg5.appendFloat('Gesturedrift', label='Drift (zephyr)')
+    pg5.appendFloat('Gestureclarity', label='Pitch Confidence Needed (0..1)')
+    pg5.appendFloat('Gesturesoft', label='Softness')
+    for k, v in (('Gesture', True), ('Gesturetrail', 3.0), ('Gesturesize', 0.11), ('Gesturerise', 0.35),
+                 ('Gesturedrift', 0.3), ('Gestureclarity', 0.8), ('Gesturesoft', 0.6)):
+        L.par[k] = v
+        L.par[k].default = v
 if not has(L, 'Meplace'):                                   # me as a corner tile (like a speaker on a call)
     pg4 = page(L, 'Me')
     pg4.appendMenu('Meplace', label='Placement')
@@ -345,10 +358,48 @@ tile_all.inputConnectors[0].connect(L.op('tile'))
 tile_all.inputConnectors[1].connect(L.op('tile_border'))
 tile_all.par.operand = 'over'
 
+# melodic gesture whisp: puffs from the pitch follower, instanced, soft and glowing
+gcb = synced(L, textDAT, 'gesture_callbacks', 'modules/landscape/gesture.py', 1350, -1600)
+gest = ensure(L, scriptCHOP, 'gesture', 1500, -1600)
+gest.par.callbacks = gcb.path
+wmat = ensure(L, constantMAT, 'mat_whisp', 1650, -1700)
+wmat.par.colorr = wmat.par.colorg = wmat.par.colorb = 1.0
+wmat.par.blending = True
+wmat.par.srcblend, wmat.par.destblend = 'one', 'one'
+wmat.par.depthtest = False
+old_w = L.op('whisp')
+if old_w is not None:
+    old_w.destroy()
+wg = L.create(geometryCOMP, 'whisp')
+wg.nodeX, wg.nodeY = 1650, -1600
+for c in list(wg.children):
+    c.destroy()
+wb = wg.create(sphereSOP, 'puff')                          # default sphere (custom types broke instancing)
+wb.render = wb.display = True
+wg.par.instancing = True
+wg.par.instanceop = gest.path
+wg.par.instancetx, wg.par.instancety, wg.par.instancetz = 'tx', 'ty', 'tz'
+wg.par.instancesx = wg.par.instancesy = wg.par.instancesz = 's'
+wg.par.instancecolorop = gest.path
+wg.par.instancer, wg.par.instanceg, wg.par.instanceb = 'r', 'g', 'b'
+wg.par.material = wmat.path
+rw = render_top('render_whisp', (wg,), 1800, -1600, 0.0)
+wsoft = ensure(L, blurTOP, 'whisp_soft', 1950, -1600)
+wsoft.inputConnectors[0].connect(rw)
+wsoft.par.size.expr = '3 + 30 * parent().par.Gesturesoft'
+wmix = ensure(L, compositeTOP, 'whisp_lit', 2100, -1600)
+wmix.inputConnectors[0].connect(rw)
+wmix.inputConnectors[1].connect(wsoft)
+wmix.par.operand = 'add'
+wgain = ensure(L, levelTOP, 'whisp', 2250, -1600)
+wgain.inputConnectors[0].connect(wmix)
+wgain.par.opacity.expr = '1 if parent().par.Gesture else 0'
+
 final_l = ensure(L, compositeTOP, 'landscape_all', 2550, 0)
 final_l.inputConnectors[0].connect(glow)
 final_l.inputConnectors[1].connect(pall)
 final_l.inputConnectors[2].connect(me)
+final_l.inputConnectors[3].connect(wgain)
 final_l.par.operand = 'add'
 with_tile = ensure(L, compositeTOP, 'with_tile', 2700, 0)
 with_tile.inputConnectors[0].connect(L.op('tile_all'))
