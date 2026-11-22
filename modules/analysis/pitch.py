@@ -8,6 +8,7 @@ import numpy as np
 
 N = 2048                     # analysis window (samples): two periods of the low E at 44.1 kHz
 FMIN, FMAX = 70.0, 1300.0    # guitar range, with room
+_BUF = {}                    # rolling audio buffer (module memory: storing on the op made it re-cook itself)
 
 
 def onSetupParameters(scriptOp):
@@ -57,7 +58,7 @@ def _nsdf_pitch(x, fs):
 
 def onCook(scriptOp):
     src = op.Sources.op('guitar')
-    buf = scriptOp.fetch('buf', None)
+    buf = _BUF.get(scriptOp.path)
     if buf is None or len(buf) != N:
         buf = np.zeros(N, np.float32)
     if src is not None and src.numChans:
@@ -66,7 +67,7 @@ def onCook(scriptOp):
             buf = new[-N:].copy()
         elif new.size:
             buf = np.concatenate((buf[new.size:], new))
-    scriptOp.store('buf', buf)
+    _BUF[scriptOp.path] = buf
     fs = src.rate if src is not None else 44100.0
     rms = float(np.sqrt(np.mean(buf * buf)))
     freq, clarity = (0.0, 0.0)

@@ -19,6 +19,7 @@ STD_OPEN = [40, 45, 50, 55, 59, 64]          # standard tuning, MIDI, low to hig
 YMAX, NECK_L, STRING_W = 0.70, 40.0, 1.0      # same world as the landscape (build_landscape.py)
 MAXPUFFS = 260
 _PAL = {}
+_STATE = {}       # per-op memory (module level: storing on the op itself makes it re-cook in a loop)
 
 
 def onSetupParameters(scriptOp):
@@ -82,7 +83,7 @@ def place(midi, st, frets, tuning):
 def onCook(scriptOp):
     L = parent()
     dt = 1.0 / max(1.0, project.cookRate)
-    st = scriptOp.fetch('state', None)
+    st = _STATE.get(scriptOp.path)
     if st is None:
         st = {'puffs': [], 'hand': 5.0, 'last_s': 2.5, 'note': None, 'head': None}
     pitch = op.Analysis.op('pitch')
@@ -133,7 +134,7 @@ def onCook(scriptOp):
             p[2] += math.cos(p[7] * 1.3 + p[8]) * drift * 0.6 * dt
             keep.append(p)
     st['puffs'] = keep[-MAXPUFFS:]
-    scriptOp.store('state', st)
+    _STATE[scriptOp.path] = st
 
     n = max(1, len(st['puffs']))
     scriptOp.clear()
