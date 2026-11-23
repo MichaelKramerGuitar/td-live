@@ -547,8 +547,13 @@ BASE, HOVER, EDGE = (0.135, 0.145, 0.175), (0.19, 0.20, 0.24), (0.23, 0.24, 0.29
 
 probe = ensure(SH, textTOP, 'ui_measure', 600, -500)       # measures text widths for the layout
 probe.par.font, probe.par.fontsizex = FONT, FONT_SIZE
+cap_probe = ensure(SH, textTOP, 'ui_measure_cap', 600, -600)
+cap_probe.par.font, cap_probe.par.fontsizex = FONT, 10.5
 def natural(bn):
-    return max(36, max(probe.evalTextSize(s)[0] for s in WIDEST[bn]) + 30)
+    w = max(probe.evalTextSize(s)[0] for s in WIDEST[bn]) + 30
+    if bn in CAP:
+        w = max(w, cap_probe.evalTextSize(CAP[bn])[0] + 10)      # room for the caption too
+    return max(36, w)
 
 BUTTONS = []
 for r, groups in enumerate(ROWS):
@@ -617,8 +622,7 @@ for r, groups in enumerate(ROWS):
                 ct_.par.font, ct_.par.fontsizex = FONT, 10.5
                 ct_.par.alignx, ct_.par.aligny = 'left', 'bottom'
                 ct_.par.fontcolorr, ct_.par.fontcolorg, ct_.par.fontcolorb = 0.50, 0.53, 0.60
-                ct_.par.bgcolorr, ct_.par.bgcolorg, ct_.par.bgcolorb = BG
-                ct_.par.bgalpha = 1
+                ct_.par.bgalpha = 0
                 ct_.par.text = CAP[bn]
                 c.par.top = ct_.path
             BUTTONS.append((bn, bn))
