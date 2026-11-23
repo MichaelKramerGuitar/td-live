@@ -265,6 +265,6 @@ def label():
     now = op.Song.op('now')
     try:
         ch, nx = now['chord', 1].val, now['next', 1].val
-    except Exception:
-        ch = nx = ''
+    except Exception:                               # idle: the first chord and the one after it
+        ch, nx = s.events[0][2].symbol, s.events[1 % len(s.events)][2].symbol
     return '%s   %s   bar %d/%d      %s  →  %s' % (s.chart['title'], name, bar - start + 1, nbars, ch, nx)
