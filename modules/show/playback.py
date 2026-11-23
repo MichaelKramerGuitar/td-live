@@ -84,13 +84,17 @@ def select_newest():
 
 
 def label():
+    """The selected take as 'Nov 22 · 17:51' (the TAKE caption says what it is)."""
     sel = selected()
     if not sel:
-        return 'Take: none'
-    name = os.path.basename(sel)[:-4]            # 20261121_153012_landscape_landscape_720
-    parts = name.split('_')
-    hhmm = parts[1][:2] + ':' + parts[1][2:4] if len(parts) > 1 and len(parts[1]) >= 4 else name
-    return 'Take %s' % hhmm
+        return 'none'
+    parts = os.path.basename(sel)[:-4].split('_')    # 20261121_153012_landscape_landscape_720
+    try:
+        d, t = parts[0], parts[1]
+        mon = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split()[int(d[4:6]) - 1]
+        return '%s %d \u00b7 %s:%s' % (mon, int(d[6:8]), t[:2], t[2:4])
+    except (IndexError, ValueError):
+        return os.path.basename(sel)[:-4][:16]
 
 
 def playing():

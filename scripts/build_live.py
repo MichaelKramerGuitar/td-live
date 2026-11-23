@@ -426,13 +426,14 @@ pao.par.active.expr = "op.Show.fetch('playback', False)"
 pao.par.active.mode = ParMode.EXPRESSION                  # (setting .expr alone left it CONSTANT = off: silent playback)
 
 ov = ensure(O, compositeTOP, 'preview', 500, -100)
-ov.inputConnectors[0].connect(st_)
-ov.inputConnectors[1].connect(ct)
+for c_ in list(ov.inputConnectors):                     # status line now lives in the window header
+    c_.disconnect()
+ov.inputConnectors[0].connect(ct)
 if O.op('beat_dot') is not None:
-    ov.inputConnectors[2].connect(O.op('beat_dot'))
-    ov.inputConnectors[3].connect(mon_src)
-else:
+    ov.inputConnectors[1].connect(O.op('beat_dot'))
     ov.inputConnectors[2].connect(mon_src)
+else:
+    ov.inputConnectors[1].connect(mon_src)
 ov.par.operand = 'over'
 
 rec = ensure(O, moviefileoutTOP, 'recorder', 500, 100)
@@ -444,86 +445,198 @@ rec.par.record = False
 if O.op('take_wav') is not None:
     O.op('take_wav').destroy()
 
-# ---------------------------------------------------------------- the TDlive window (monitor + buttons)
-PANEL_W, MON_H, ROW_H = 960, 540, 52
-ROWS = [   # (name, relative width) - row 1: performance, row 2: look + playback
-    [('btn_rehearse', 3), ('btn_record', 3), ('btn_chart', 4), ('btn_key', 3),
-     ('btn_tempo_down', 1), ('btn_tempo', 2), ('btn_tempo_up', 1)],
-    [('btn_mode', 4), ('btn_me', 3), ('btn_camera', 2), ('btn_format', 2), ('btn_take', 3), ('btn_play', 2),
-     ('btn_delete', 2), ('btn_export', 3)],
+# ---------------------------------------------------------------- the TDlive window (header, monitor, controls)
+# Layout, top to bottom: header (status, export progress) | monitor (the preview) | controls in three rows, each
+# a set of groups. Every button is sized to the widest text it can show, then rows stretch the 'grow' buttons to
+# fill the width. Valued controls get a small caption above (CHART, KEY...), so their text is just the value.
+PANEL_W, MON_H, HEAD_H = 960, 540, 34
+PAD, CAP_H, BTN_H, ROW_GAP, GAP, GROUP_GAP = 12, 15, 34, 6, 6, 22
+FONT, FONT_SIZE = 'Segoe UI', 15
+BG = (0.055, 0.058, 0.07)
+CAP = {'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
+       'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE'}
+GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me'}
+ROWS = [   # groups of buttons per row
+    [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up'], ['btn_rehearse', 'btn_record']],
+    [['btn_mode', 'btn_me', 'btn_camera', 'btn_format']],
+    [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
 ]
-BAR_H = ROW_H * len(ROWS) + 6
+WIDEST = {   # the widest text each button can show (sets its width)
+    'btn_chart': list(op.Song.par.Chart.menuLabels) or ['no chart'],
+    'btn_key': ['Gb (chart)', 'C#'],
+    'btn_tempo_down': ['−'], 'btn_tempo_up': ['+'], 'btn_tempo': ['000 bpm'],
+    'btn_rehearse': ['Rehearse', '■ Stop'], 'btn_record': ['● Record', '■ Stop'],
+    'btn_mode': list(SH.par.Mode.menuLabels),
+    'btn_me': ['Negative', 'Outline', 'Tile ↖'], 'btn_camera': ['Off'], 'btn_format': ['16:9'],
+    'btn_take': ['Sep 30 · 23:59', 'none'], 'btn_play': ['▶ Play', '■ Stop'],
+    'btn_export': ['Export 100%', 'Exported ✓'], 'btn_delete': ['Delete?'],
+}
+CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
-pn.par.w, pn.par.h = PANEL_W, MON_H + BAR_H
-pn.par.bgcolorr, pn.par.bgcolorg, pn.par.bgcolorb = 0.06, 0.06, 0.07
+pn.par.w, pn.par.h = PANEL_W, CTRL_H + MON_H + HEAD_H
+pn.par.bgcolorr, pn.par.bgcolorg, pn.par.bgcolorb = BG
+for old in [c for c in pn.children if c.name.startswith(('btn_', 'cap_')) or c.name in ('export_status', 'header')]:
+    old.destroy()
+
 mon = ensure(pn, containerCOMP, 'monitor', 0, 0)
 mon.par.top = op.Output.op('preview').path
 mon.par.h = MON_H
 mon.par.w.expr = '%d * op.Config.par.Width / op.Config.par.Height' % MON_H
 mon.par.x.expr = '(%d - me.par.w) / 2' % PANEL_W
-mon.par.y = BAR_H
-meter = ensure(pn, containerCOMP, 'meter', 0, -400)        # input level: set Input Gain so playing sits mid-bar
+mon.par.y = CTRL_H
+
+# header: what's happening (left) and export progress (right)
+hd = pn.create(containerCOMP, 'header')
+hd.nodeX, hd.nodeY = 0, 200
+hd.par.x, hd.par.y, hd.par.w, hd.par.h = 0, CTRL_H + MON_H, PANEL_W, HEAD_H
+hl = hd.create(textTOP, 'left')
+hr = hd.create(textTOP, 'right')
+for t, side in ((hl, 'left'), (hr, 'right')):
+    t.par.outputresolution = 'custom'
+    t.par.resolutionw, t.par.resolutionh = PANEL_W, HEAD_H
+    t.par.font = FONT
+    t.par.fontsizex = 14
+    t.par.alignx, t.par.aligny = side, 'center'
+    t.par.positionx = PAD if side == 'left' else -PAD
+    t.par.bgalpha = 0
+hl.par.text.expr = "op.Show.fetch('ui_status', '')"
+hl.par.fontcolorr = 0.92
+hl.par.fontcolorg.expr = "0.42 if op.Show.fetch('ui_rec', False) else 0.92"
+hl.par.fontcolorb.expr = "0.45 if op.Show.fetch('ui_rec', False) else 0.92"
+hr.par.text.expr = "op.Show.op('export').module.status()"
+hr.par.fontcolorr, hr.par.fontcolorg, hr.par.fontcolorb = 0.55, 0.72, 1.0
+hr.inputConnectors[0].connect(hl)
+hb = hd.create(constantTOP, 'bg')
+hb.par.resolutionw, hb.par.resolutionh = 8, 8
+hb.par.colorr, hb.par.colorg, hb.par.colorb = 0.035, 0.037, 0.045
+hl.inputConnectors[0].connect(hb)
+hd.par.top = hr.path
+
+# thin bars between monitor and controls: input level (green, red when clipping) and export progress (blue)
+meter = ensure(pn, containerCOMP, 'meter', 0, -400)
 mc = ensure(meter, constantTOP, 'fill', 0, 0)
 mc.par.resolutionw, mc.par.resolutionh = 8, 8
 mc.par.colorr.expr = "0.9 if op.Analysis.op('out')['level'] > 0.95 else 0.25"
 mc.par.colorg.expr = "0.3 if op.Analysis.op('out')['level'] > 0.95 else 0.8"
 mc.par.colorb = 0.35
 meter.par.top = mc.path
-meter.par.x, meter.par.y, meter.par.h = 0, BAR_H - 4, 4
+meter.par.x, meter.par.y, meter.par.h = 0, CTRL_H - 3, 3
 meter.par.w.expr = "max(1, %d * op.Analysis.op('out')['level'])" % PANEL_W
-exb = ensure(pn, containerCOMP, 'export_bar', 0, -500)  # export progress: fills across the top of the button bar
+exb = ensure(pn, containerCOMP, 'export_bar', 0, -500)
 ef = ensure(exb, constantTOP, 'fill', 0, 0)
 ef.par.resolutionw, ef.par.resolutionh = 8, 8
 ef.par.colorr, ef.par.colorg, ef.par.colorb = 0.35, 0.6, 0.95
 exb.par.top = ef.path
-exb.par.x, exb.par.y, exb.par.h = 0, BAR_H - 10, 5
+exb.par.x, exb.par.y, exb.par.h = 0, CTRL_H + MON_H, 3
 exb.par.w.expr = "max(1, %d * op.Show.op('export').module.progress())" % PANEL_W
 exb.par.display.expr = "op.Show.op('export').module.progress() >= 0"
-exs = ensure(pn, containerCOMP, 'export_status', 0, -600)  # "Exporting <take>  42%  ~0:31 left" over the monitor
-et = ensure(exs, textTOP, 'label', 0, 0)
-et.par.outputresolution = 'custom'
-et.par.resolutionw, et.par.resolutionh = PANEL_W, 22
-et.par.fontsizex = 13
-et.par.alignx, et.par.aligny = 'left', 'center'
-et.par.bgcolorr, et.par.bgcolorg, et.par.bgcolorb, et.par.bgalpha = 0, 0, 0, 0.6
-et.par.text.expr = "op.Show.op('export').module.status()"
-exs.par.top = et.path
-exs.par.x, exs.par.y, exs.par.w, exs.par.h = 0, BAR_H, PANEL_W, 22
-exs.par.display.expr = "op.Show.op('export').module.progress() >= 0"
-for old_b in [c for c in pn.children if c.name.startswith('btn_')]:   # rebuild buttons each time
-    old_b.destroy()
+
+# button colours: (base, active) and when 'active' applies
+IDLE = "op.Show.op('logic').module.state() == 'idle'"
+ACTIVE = {
+    'btn_record': ("op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record'", (0.78, 0.20, 0.25)),
+    'btn_rehearse': ("op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse'", (0.13, 0.50, 0.55)),
+    'btn_play': ("op.Show.op('playback').module.playing()", (0.16, 0.50, 0.30)),
+    'btn_delete': ("op.Show.op('playback').module.delete_armed()", (0.80, 0.45, 0.12)),
+    'btn_export': ("op.Show.op('export').module.progress() >= 0", (0.20, 0.36, 0.62)),
+}
+ARMED = {'btn_record': "op.Show.par.Armed == 'record'", 'btn_rehearse': "op.Show.par.Armed == 'rehearse'"}
+IDLE_ONLY = {'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
+             'btn_play', 'btn_delete', 'btn_export'}
+BASE, HOVER, EDGE = (0.135, 0.145, 0.175), (0.19, 0.20, 0.24), (0.23, 0.24, 0.29)
+
+probe = ensure(SH, textTOP, 'ui_measure', 600, -500)       # measures text widths for the layout
+probe.par.font, probe.par.fontsizex = FONT, FONT_SIZE
+def natural(bn):
+    return max(36, max(probe.evalTextSize(s)[0] for s in WIDEST[bn]) + 30)
+
 BUTTONS = []
-for r, row in enumerate(ROWS):
-    total = sum(wt for _, wt in row)
-    x = 0
-    y = BAR_H - 6 - ROW_H * (r + 1)
-    for bn, wt in row:
-        bw = int(PANEL_W * wt / total)
-        b = ensure(pn, containerCOMP, bn, 120 * len(BUTTONS), -200)
-        b.par.x, b.par.y, b.par.w, b.par.h = x + 3, y + 4, bw - 6, ROW_H - 8
-        t = ensure(b, textTOP, 'label', 0, 0)
-        t.par.outputresolution = 'custom'
-        t.par.resolutionw, t.par.resolutionh = bw - 6, ROW_H - 8
-        t.par.fontsizex = 14
-        t.par.alignx, t.par.aligny = 'center', 'center'
-        t.par.bgcolorr, t.par.bgcolorg, t.par.bgcolorb, t.par.bgalpha = 0.16, 0.16, 0.18, 1
-        b.par.top = t.path
-        BUTTONS.append((bn, bn))
-        x += bw
+for r, groups in enumerate(ROWS):
+    names = [b for g in groups for b in g]
+    widths = {b: natural(b) for b in names}
+    used = sum(widths.values()) + sum(GAP * (len(g) - 1) for g in groups) + GROUP_GAP * (len(groups) - 1)
+    spare = PANEL_W - 2 * PAD - used
+    growers = [b for b in names if b in GROW]
+    if spare > 0 and growers:
+        tot = sum(widths[b] for b in growers)
+        for b in growers:
+            widths[b] += int(spare * widths[b] / tot)
+    y = CTRL_H - PAD - (r + 1) * (CAP_H + BTN_H) - r * ROW_GAP        # bottom of this row's buttons
+    x = PAD
+    for gi, g in enumerate(groups):
+        if gi:
+            x += GROUP_GAP
+        for i, bn in enumerate(g):
+            if i:
+                x += GAP
+            w = widths[bn]
+            b = pn.create(containerCOMP, bn)
+            b.nodeX, b.nodeY = 130 * len(BUTTONS), -200
+            b.par.x, b.par.y, b.par.w, b.par.h = x, y, w, BTN_H
+            bg = b.create(rectangleTOP, 'bg')
+            bg.par.outputresolution = 'custom'
+            bg.par.resolutionw, bg.par.resolutionh = w, BTN_H
+            bg.par.sizeunit = 'fraction'
+            bg.par.sizex = bg.par.sizey = 1
+            bg.par.cornerradiusunit = 'pixels'
+            bg.par.cornerradius = 7
+            bg.par.borderwidthunit = 'pixels'
+            bg.par.borderwidth = 1.5 if bn in ARMED else 1
+            bg.par.bgcolorr, bg.par.bgcolorg, bg.par.bgcolorb = BG
+            bg.par.bgalpha = 1
+            act, col = ACTIVE.get(bn, ('False', BASE))
+            for k, ch in enumerate('rgb'):
+                getattr(bg.par, 'fillcolor' + ch).expr = '%r if (%s) else (%r if parent().panel.rollover else %r)' % (
+                    col[k], act, HOVER[k], BASE[k])
+                edge = EDGE[k]
+                if bn in ARMED:
+                    armcol = ACTIVE[bn][1]
+                    getattr(bg.par, 'border' + ch).expr = '%r if (%s) else %r' % (min(1, armcol[k] * 1.25), ARMED[bn], edge)
+                else:
+                    getattr(bg.par, 'border' + ch).val = edge
+            t = b.create(textTOP, 'label')
+            t.inputConnectors[0].connect(bg)
+            t.par.outputresolution = 'custom'
+            t.par.resolutionw, t.par.resolutionh = w, BTN_H
+            t.par.font, t.par.fontsizex = FONT, FONT_SIZE
+            t.par.alignx, t.par.aligny = 'center', 'center'
+            t.par.bgalpha = 0
+            dim = ('0.42 if not (%s) else 0.93' % IDLE) if bn in IDLE_ONLY else '0.93'
+            for ch in 'rgb':
+                getattr(t.par, 'fontcolor' + ch).expr = dim
+            if bn == 'btn_record':                       # the record dot stays red
+                t.par.fontcolorg.expr = t.par.fontcolorb.expr = "0.93 if (%s) else 0.45" % ACTIVE[bn][0]
+            b.par.top = t.path
+            if bn in CAP:
+                c = pn.create(containerCOMP, 'cap_' + bn[4:])
+                c.nodeX, c.nodeY = 130 * len(BUTTONS), -350
+                c.par.x, c.par.y, c.par.w, c.par.h = x + 2, y + BTN_H, w, CAP_H
+                ct_ = c.create(textTOP, 'label')
+                ct_.par.outputresolution = 'custom'
+                ct_.par.resolutionw, ct_.par.resolutionh = w, CAP_H
+                ct_.par.font, ct_.par.fontsizex = FONT, 10.5
+                ct_.par.alignx, ct_.par.aligny = 'left', 'bottom'
+                ct_.par.fontcolorr, ct_.par.fontcolorg, ct_.par.fontcolorb = 0.50, 0.53, 0.60
+                ct_.par.bgcolorr, ct_.par.bgcolorg, ct_.par.bgcolorb = BG
+                ct_.par.bgalpha = 1
+                ct_.par.text = CAP[bn]
+                c.par.top = ct_.path
+            BUTTONS.append((bn, bn))
+            x += w
 LABELS = {
-    'btn_rehearse': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse' else 'Rehearse'",
-    'btn_record': "'Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '\u25cf Record'",
+    'btn_rehearse': "'\\u25a0 Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse' else 'Rehearse'",
+    'btn_record': "'\\u25a0 Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '\\u25cf Record'",
     'btn_chart': "op.Song.par.Chart.menuLabels[op.Song.par.Chart.menuIndex]",
-    'btn_key': "'Key: ' + (op.Song.op('engine').module.song().key + ' (chart)' if op.Song.par.Key == 'default' and op.Song.op('engine').module.song() else op.Song.par.Key.eval())",
-    'btn_tempo_down': "'\u2212'",
+    'btn_key': "(op.Song.op('engine').module.song().key + ' (chart)' if op.Song.par.Key == 'default' and op.Song.op('engine').module.song() else op.Song.par.Key.eval())",
+    'btn_tempo_down': "'\\u2212'",
     'btn_tempo': "'%d bpm' % round(op.Song.par.Tempo.eval())",
     'btn_tempo_up': "'+'",
-    'btn_mode': "'Mode: ' + op.Show.par.Mode.menuLabels[op.Show.par.Mode.menuIndex]",
-    'btn_me': "'Me: ' + (op.Visuals.op('landscape').par.Mestyle.eval().capitalize() if op.Visuals.op('landscape').par.Meplace == 'background' else 'Tile ' + {'top_left': '\\u2196', 'top_right': '\\u2197', 'bottom_left': '\\u2199', 'bottom_right': '\\u2198'}[op.Visuals.op('landscape').par.Meplace.eval()])",
-    'btn_camera': "'Cam: ' + ('on' if op.Show.par.Camerainshot else 'off')",
+    'btn_mode': "op.Show.par.Mode.menuLabels[op.Show.par.Mode.menuIndex]",
+    'btn_me': "(op.Visuals.op('landscape').par.Mestyle.eval().capitalize() if op.Visuals.op('landscape').par.Meplace == 'background' else 'Tile ' + {'top_left': '\\u2196', 'top_right': '\\u2197', 'bottom_left': '\\u2199', 'bottom_right': '\\u2198'}[op.Visuals.op('landscape').par.Meplace.eval()])",
+    'btn_camera': "'On' if op.Show.par.Camerainshot else 'Off'",
     'btn_format': "'16:9' if op.Config.par.Preset == 'landscape_720' else '9:16'",
     'btn_take': "op.Show.op('playback').module.label()",
-    'btn_play': "'\u25a0 Stop' if op.Show.op('playback').module.playing() else '\u25b6 Play'",
+    'btn_play': "'\\u25a0 Stop' if op.Show.op('playback').module.playing() else '\\u25b6 Play'",
     'btn_delete': "'Delete?' if op.Show.op('playback').module.delete_armed() else 'Delete'",
     'btn_export': "op.Show.op('export').module.label()",
 }
@@ -536,7 +649,7 @@ btns.par.offtoon = True
 win = ensure(SH, windowCOMP, 'window', 400, -150)
 win.par.winop = pn.path
 win.par.title = 'TDlive'
-win.par.winw, win.par.winh = PANEL_W, MON_H + BAR_H
+win.par.winw, win.par.winh = PANEL_W, CTRL_H + MON_H + HEAD_H
 win.par.size = 'custom' if 'custom' in win.par.size.menuNames else win.par.size.eval()
 
 op('/').time.play = True

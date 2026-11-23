@@ -156,6 +156,8 @@ def tick():
     ov.op('count_text').par.text = big
     ov.op('status_text').par.text = small
     rec = (k == 'record' and st != 'idle')
+    s.store('ui_status', small)                        # the TDlive window header shows it (not the preview)
+    s.store('ui_rec', rec)
     ov.op('status_text').par.fontcolorr = 1.0
     ov.op('status_text').par.fontcolorg = 0.35 if rec else 1.0
     ov.op('status_text').par.fontcolorb = 0.35 if rec else 1.0
