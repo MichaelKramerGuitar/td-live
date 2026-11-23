@@ -66,7 +66,8 @@ nm.par.fontsizex.expr = 'min(op.Config.par.Width, op.Config.par.Height) * 0.03'
 nm.par.alignx, nm.par.aligny = 'center', 'center'
 nm.par.fontcolorr, nm.par.fontcolorg, nm.par.fontcolorb = 0.95, 0.93, 0.9
 nm.par.bgalpha = 0
-nm.par.text = ''
+nm.par.text.expr = "'' if op('names_spec').numRows >= 0 else ''"   # (depends on the table: re-cooks when it changes)
+nm.par.fontalpha.expr = '1.0 if parent().par.Names else 0.0'    # the spec keeps its last text when emptied
 nm.par.specdat = spec.path
 nx = ensure(N, executeDAT, 'names_tick', 0, -450)
 nx.text = ("# fills names_spec and re-cooks the names Text TOP (it doesn't notice spec table changes by itself)\n"
