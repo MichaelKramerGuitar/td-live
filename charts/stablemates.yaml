@@ -1,0 +1,61 @@
+# Stablemates - Benny Golson (1955). Michael's changes (2026-11-23), written in Db and stored as Roman
+# numerals so it plays in any key. Spellings follow Michael's chart: E-7 A7 (not Fb / Bbb), G-7b5, B7.
+# Form: A (14) B (8) A (14) = 36 bars.
+schema: tdlive-chart/0.2
+id: stablemates
+title: Stablemates
+composer: Benny Golson
+status: playable
+changes_notation: roman
+default_key: Db
+tempo: { bpm: 180 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []          # Michael: the melody notes you'd circle
+  harmonies:
+    - { quality: major, symbol: Imaj7 }
+    - { quality: minor, symbol: ii-7 }
+    - { quality: major, symbol: V7 }
+    - { quality: minor, symbol: "#ii-7" }
+    - { quality: major, symbol: "#V7" }
+    - { quality: major, symbol: VII7alt }
+    - { quality: minor, symbol: v-7 }
+    - { quality: major, symbol: IVmaj7 }
+    - { quality: minor, symbol: iii-7 }
+
+form:
+  sections:
+    - { name: A, shape: 7, multiplier: 2, note: "14 bars: drawn as a heptagon x2 for now (Michael to decide)" }
+    - { name: B, shape: 8, note: "bridge: iii-7 IV13, then dominants sliding down by half steps from #IV7alt" }
+  order: [A, B, A]
+
+changes:
+  A:
+    - [["#ii-7", 2], ["#V7", 2]]       # E-7 A7
+    - [[ii-7, 2], [V7, 2]]             # Eb-7 Ab7
+    - [[Imaj7, 4]]                     # Dbmaj7
+    - [[VII7alt, 4]]                   # C7alt
+    - [[v-7, 4]]                       # Ab-7
+    - [[I7, 4]]                        # Db7
+    - [[IVmaj7, 4]]                    # Gbmaj7
+    - [["#ivø7", 2], [VII7alt, 2]]     # G-7b5 C7alt
+    - [[iii-7, 4]]                     # F-7
+    - [[VI7alt, 4]]                    # Bb7alt
+    - [[ii-7, 4]]                      # Eb-7
+    - [[V7alt, 4]]                     # Ab7alt
+    - [[Imaj7, 4]]                     # Dbmaj7
+    - [[Imaj7, 4]]                     # (Dbmaj7)
+  B:
+    - [[iii-7, 4]]                     # F-7
+    - [[IV13, 4]]                      # Gb13
+    - [["#IV7alt", 4]]                 # G7alt
+    - [[VII7, 4]]                      # C7
+    - [["#VI7", 4]]                    # B7
+    - [[VI7, 4]]                       # Bb7
+    - [["#V7", 4]]                     # A7
+    - [[V7, 4]]                        # Ab7

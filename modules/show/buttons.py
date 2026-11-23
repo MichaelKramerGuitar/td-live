@@ -38,6 +38,22 @@ def onOffToOn(panelValue):
             cur = ('outline', cur[1])
         i = (combos.index(cur) + 1) % len(combos) if cur in combos else 0
         L_.par.Mestyle, L_.par.Meplace = combos[i]
+    elif name in ('btn_clickv', 'btn_clicka'):        # toggle the visual / audio click (the window follows)
+        S = op.Show
+        v = S.par.Click.eval() in ('visual', 'both')
+        a = S.par.Click.eval() in ('audio', 'both')
+        if name == 'btn_clickv':
+            v = not v
+        else:
+            a = not a
+        S.par.Click = {(0, 0): 'off', (1, 0): 'visual', (0, 1): 'audio', (1, 1): 'both'}[(int(v), int(a))]
+        win = op.Click.op('window')
+        if name == 'btn_clickv':
+            (win.par.winopen if v else win.par.winclose).pulse()
+    elif name == 'btn_clickevery':
+        S = op.Show
+        names = list(S.par.Clickevery.menuNames)
+        S.par.Clickevery = names[(names.index(S.par.Clickevery.eval()) + 1) % len(names)]
     elif name == 'btn_export' and L().state() == 'idle':
         op.Show.op('export').module.export_selected()
     elif name == 'btn_take' and L().state() == 'idle':

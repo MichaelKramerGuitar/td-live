@@ -454,11 +454,12 @@ PAD, CAP_H, BTN_H, ROW_GAP, GAP, GROUP_GAP = 12, 15, 34, 6, 6, 22
 FONT, FONT_SIZE = 'Segoe UI', 15
 BG = (0.055, 0.058, 0.07)
 CAP = {'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
-       'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE'}
+       'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE', 'btn_clickv': 'CLICK',
+       'btn_clickevery': 'EVERY'}
 GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me'}
 ROWS = [   # groups of buttons per row
     [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up'], ['btn_rehearse', 'btn_record']],
-    [['btn_mode', 'btn_me', 'btn_camera', 'btn_format']],
+    [['btn_mode', 'btn_me', 'btn_camera', 'btn_format'], ['btn_clickv', 'btn_clicka', 'btn_clickevery']],
     [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
 ]
 WIDEST = {   # the widest text each button can show (sets its width)
@@ -539,6 +540,8 @@ ACTIVE = {
     'btn_play': ("op.Show.op('playback').module.playing()", (0.16, 0.50, 0.30)),
     'btn_delete': ("op.Show.op('playback').module.delete_armed()", (0.80, 0.45, 0.12)),
     'btn_export': ("op.Show.op('export').module.progress() >= 0", (0.20, 0.36, 0.62)),
+    'btn_clickv': ("op.Show.par.Click.eval() in ('visual', 'both')", (0.30, 0.34, 0.50)),
+    'btn_clicka': ("op.Show.par.Click.eval() in ('audio', 'both')", (0.30, 0.34, 0.50)),
 }
 ARMED = {'btn_record': "op.Show.par.Armed == 'record'", 'btn_rehearse': "op.Show.par.Armed == 'rehearse'"}
 IDLE_ONLY = {'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
@@ -643,6 +646,9 @@ LABELS = {
     'btn_play': "'\\u25a0 Stop' if op.Show.op('playback').module.playing() else '\\u25b6 Play'",
     'btn_delete': "'Delete?' if op.Show.op('playback').module.delete_armed() else 'Delete'",
     'btn_export': "op.Show.op('export').module.label()",
+    'btn_clickv': "'Visual'",
+    'btn_clicka': "'Audio'",
+    'btn_clickevery': "op.Show.par.Clickevery.eval().capitalize()",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

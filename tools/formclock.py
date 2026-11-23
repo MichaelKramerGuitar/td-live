@@ -57,6 +57,19 @@ class Song:
                     beat += beats
         self.chorus_beats = beat
         self.chorus_bars = bar
+        # Sections as played, for "where are we in the form": [(first bar, bars, section name), ...]
+        self.spans = []
+        start = 1
+        for section, pass_, nbars in cl.form_plan(chart):
+            self.spans.append((start, nbars, section))
+            start += nbars
+
+    def span_at(self, bar):
+        """(index, first bar, bars, name) of the section containing chorus bar `bar`."""
+        for i, (start, n, name) in enumerate(self.spans):
+            if start <= bar < start + n:
+                return i, start, n, name
+        return 0, 1, self.spans[0][1], self.spans[0][2]
 
     @property
     def sec_per_beat(self):

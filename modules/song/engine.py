@@ -87,7 +87,9 @@ def update(seconds):
     now, clock = S.op('now'), S.op('clock')
     if s is None or seconds is None:
         vals = {'playing': 0, 'counting_in': 0, 'beat_phase': 0, 'bar_phase': 0, 'beat': 0, 'bar': 0,
-                'chorus': 0, 'chord_index': -1, 'tick': 1, 'downbeat': 0, 'active': 0, 'beats_left': 0}
+                'chorus': 0, 'chord_index': -1, 'tick': 1, 'downbeat': 0, 'active': 0, 'beats_left': 0,
+                'clickon': 0, 'accent': 0}
+        _CLICK.update(on=0, accent=0, big='', info='')
         _set_clock(clock, vals)
         _set_now(now, {'chart': describe(), 'state': 'idle'})
         if s is not None and _CACHE['chord_index'] != 'idle':      # show the first chord while idle
@@ -99,10 +101,12 @@ def update(seconds):
     beats = seconds / s.sec_per_beat
     tick = beats - math.floor(beats)
     downbeat = 1 if int(math.floor(beats)) % s.beats_per_bar == 0 else 0
+    _click(s, p, downbeat)
     _set_clock(clock, {'playing': 0 if p.counting_in else 1, 'counting_in': 1 if p.counting_in else 0,
                        'beat_phase': p.beat_phase, 'bar_phase': p.bar_phase, 'beat': p.beat, 'bar': p.bar,
                        'chorus': p.chorus, 'chord_index': p.chord_index,
-                       'tick': tick, 'downbeat': downbeat, 'active': 1, 'beats_left': p.beats_left})
+                       'tick': tick, 'downbeat': downbeat, 'active': 1, 'beats_left': p.beats_left,
+                       'clickon': _CLICK['on'], 'accent': _CLICK['accent']})
     ch = p.chord or p.next_chord
     _set_now(now, {'chart': describe(), 'state': 'count-in' if p.counting_in else 'playing',
                    'chorus': p.chorus, 'section': p.section, 'pass': p.pass_, 'bar': p.bar,
@@ -141,3 +145,49 @@ def _write_chord(ch):
     for s, f, n, iv, role, w in h.fretboard(ch, op.Config.par.Tuning.eval(), op.Song.par.Frets.eval()):
         r, g, b = cl.hex_to_rgb(cl.color_for(n, pal))
         pos.appendRow([s, f, n, role, w, r, g, b])
+
+
+# ---------------------------------------------------------------- the click: what to sound/show on this beat
+# show > Click page > Click Every: 'beat' (every beat), 'bar' (beat 1 only) or 'form' (benchmarks: the top of
+# every section, plus a count into the next section on the last bar of each one). The count-in always clicks
+# every beat. accent: 2 = top of a section, 1 = beat 1, 0 = other beats.
+_CLICK = {'on': 0, 'accent': 0, 'big': '', 'info': ''}
+
+
+def _click(s, p, downbeat):
+    every = op.Show.par.Clickevery.eval() if hasattr(op.Show.par, 'Clickevery') else 'beat'
+    if p.counting_in:
+        _CLICK.update(on=1, accent=1 if downbeat else 0, big=str(p.beats_left),
+                      info='count-in  \u2192  %s' % s.spans[0][2])
+        return
+    i, start, n, name = s.span_at(p.bar)
+    bis = p.bar - start + 1                       # bar within this section (1..n)
+    last = bis == n
+    nxt = s.spans[(i + 1) % len(s.spans)][2]
+    top = bis == 1 and p.beat == 1
+    accent = 2 if top else (1 if p.beat == 1 else 0)
+    where = '%s  bar %d/%d' % (name, bis, n)
+    chords = '%s  >  %s' % ((p.chord or p.next_chord).symbol, p.next_chord.symbol)
+    if every == 'bar':
+        _CLICK.update(on=1 if p.beat == 1 else 0, accent=accent, big=str(bis), info=where + '    ' + chords)
+    elif every == 'form':
+        if last:
+            left = s.beats_per_bar - p.beat + 1
+            _CLICK.update(on=1, accent=accent, big=str(left),
+                          info='\u2192  %s%s' % (nxt, '  (top, chorus %d)' % (p.chorus + 1) if i == len(s.spans) - 1 else ''))
+        else:
+            _CLICK.update(on=1 if top else 0, accent=accent, big=name if bis == 1 else str(bis),
+                          info=where + '    ' + chords)
+    else:
+        _CLICK.update(on=1, accent=accent, big=str(p.beat), info=where + '    ' + chords)
+
+
+def click_big():
+    return _CLICK['big'] if op.Song.op('out')['active'] else ''
+
+
+def click_info():
+    if op.Song.op('out')['active']:
+        return _CLICK['info']
+    m = op.Show.par.Click.eval()
+    return 'click: %s, every %s' % (m, op.Show.par.Clickevery.eval()) if hasattr(op.Show.par, 'Clickevery') else m
