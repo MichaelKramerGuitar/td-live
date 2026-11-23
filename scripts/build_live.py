@@ -471,6 +471,7 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_me': ['Negative', 'Outline', 'Tile ↖'], 'btn_camera': ['Off'], 'btn_format': ['16:9'],
     'btn_take': ['Sep 30 · 23:59', 'none'], 'btn_play': ['▶ Play', '■ Stop'],
     'btn_export': ['Export 100%', 'Exported ✓'], 'btn_delete': ['Delete?'],
+    'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
 }
 CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
