@@ -14,7 +14,7 @@ def test_stablemates_in_db_matches_michaels_chart():
         if e[6] <= 14:
             a.append(e[2].symbol)
     assert a == ['E-7', 'A7', 'Eb-7', 'Ab7', 'Dbmaj7', 'C7alt', 'Ab-7', 'Db7', 'Gbmaj7', 'Gø7', 'C7alt',
-                 'F-7', 'Bb7alt', 'Eb-7', 'Ab7alt', 'Dbmaj7', 'Dbmaj7']
+                 'F-7', 'Bb7alt', 'Eb-7', 'Ab7alt', 'Dbmaj7', 'C7alt']   # A1 turns into the bridge
     bridge = [e[2].symbol for e in s.events if 15 <= e[6] <= 22]
     assert bridge == ['F-7', 'Gb13', 'G7alt', 'C7', 'B7', 'Bb7', 'A7', 'Ab7']
 
@@ -30,3 +30,6 @@ def test_stablemates_melody_and_phrasing():
     a = c['form']['sections'][0]
     assert cl.phrasing_text(a, 0) == '2+8 · 4' and cl.phrasing_text(a, 1) == '8+2 · 4'
     assert cl.check_chart(c) == []
+    last_a1 = [i for i, e in enumerate(s.events) if e[6] == 14][0]
+    assert s.melody_for(last_a1) == ['Eb'] and h.chord_function('C', 'Eb', '7alt') == '#9'
+    assert [e[2].symbol for e in s.events if e[6] == 36] == ['Dbmaj7']

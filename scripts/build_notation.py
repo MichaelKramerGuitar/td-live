@@ -69,11 +69,14 @@ nm.par.bgalpha = 0
 nm.par.text = ''
 nm.par.specdat = spec.path
 nx = ensure(N, executeDAT, 'names_tick', 0, -450)
-nx.text = ("def onFrameStart(frame):\n"
+nx.text = ("# fills names_spec and re-cooks the names Text TOP (it doesn't notice spec table changes by itself)\n"
+           "def onFrameStart(frame):\n"
            "    if parent().par.Names and op.Show.par.Mode == 'notation':\n"
            "        op('prims_callbacks').module.names_table(op('names_spec'))\n"
-           "    elif op('names_spec').numRows > 1:\n"
+           "        op('names').cook(force=True)\n"
+           "    elif op('names_spec').numRows > 0:\n"
            "        op('names_spec').clear()\n"
+           "        op('names').cook(force=True)\n"
            "    return\n")
 nx.par.framestart = True
 nx.par.active = True

@@ -1,6 +1,6 @@
 # Stablemates - Benny Golson (1955). Michael's changes (2026-11-23), written in Db and stored as Roman
 # numerals so it plays in any key. Spellings follow Michael's chart: E-7 A7 (not Fb / Bbb), G-7b5, B7.
-# Form: A (14) B (8) A (14) = 36 bars.
+# Form: A1 (14) B (8) A2 (14) = 36 bars. A1 turns into the bridge on C7alt; A2 ends on Dbmaj7.
 schema: tdlive-chart/0.2
 id: stablemates
 title: Stablemates
@@ -30,15 +30,34 @@ pitch:
 
 form:
   sections:
-    - name: A
+    - name: A1
       shape: 14
       phrasings: [[[2, 8], 4], [[8, 2], 4]]    # Michael: 10 + 4, the 10 heard as 2 + 8 or as 8 + 2
-      note: "14 bars, phrased 10 + 4"
+      note: "first A: its last bar is C7alt, going into the bridge"
+    - name: A2
+      shape: 14
+      phrasings: [[[2, 8], 4], [[8, 2], 4]]
+      note: "last A: ends on Dbmaj7"
     - { name: B, shape: 8, note: "bridge: iii-7 IV13, then dominants sliding down by half steps from #IV7alt" }
-  order: [A, B, A]
+  order: [A1, B, A2]
 
 changes:
-  A:
+  A1:
+    - [["#ii-7", 2], ["#V7", 2]]       # E-7 A7
+    - [[ii-7, 2], [V7, 2]]             # Eb-7 Ab7
+    - [[Imaj7, 4]]                     # Dbmaj7
+    - [[VII7alt, 4]]                   # C7alt
+    - [[v-7, 4]]                       # Ab-7
+    - [[I7, 4]]                        # Db7
+    - [[IVmaj7, 4]]                    # Gbmaj7
+    - [["#ivø7", 2], [VII7alt, 2]]     # G-7b5 C7alt
+    - [[iii-7, 4]]                     # F-7
+    - [[VI7alt, 4]]                    # Bb7alt
+    - [[ii-7, 4]]                      # Eb-7
+    - [[V7alt, 4]]                     # Ab7alt
+    - [[Imaj7, 4]]                     # Dbmaj7
+    - [[VII7alt, 4]]                   # C7alt (into the bridge)
+  A2:
     - [["#ii-7", 2], ["#V7", 2]]       # E-7 A7
     - [[ii-7, 2], [V7, 2]]             # Eb-7 Ab7
     - [[Imaj7, 4]]                     # Dbmaj7
@@ -66,7 +85,22 @@ changes:
 # Melodic nodes (Michael, 2026-11-23), as degrees of the key; null = the previous node carries on.
 # In Db:                    (letters)            over the chords
 melody:
-  A:
+  A1:
+    - "#3"                  # F#   9 of E-7 -> 13 of A7
+    - "2"                   # Eb
+    - "5"                   # Ab
+    - null                  # (Ab: b13 of C7alt)
+    - null                  # (Ab)
+    - null                  # (Ab)
+    - "1"                   # Db
+    - ["7", "#2"]           # C over G-7b5, E over C7alt
+    - "5"                   # Ab
+    - null                  # (Ab)
+    - "3"                   # F
+    - "#2"                  # E
+    - "2"                   # Eb
+    - "2"                   # Eb over C7alt (into the bridge)
+  A2:
     - "#3"                  # F#   9 of E-7 -> 13 of A7
     - "2"                   # Eb
     - "5"                   # Ab

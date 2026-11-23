@@ -71,6 +71,11 @@ def chord_function(root, note, quality=''):
     altered/dominant chord is b13 when spelled as a 6th."""
     iv = interval_between(root, note)
     acc, num = iv[:-1], int(iv[-1])
+    dominant = quality.startswith('7') or quality in ('9', '13')
+    if dominant and iv == 'b3':                     # a dominant has its 3: a minor 3rd over it is the #9
+        return '#9'
+    if dominant and iv == 'b5':
+        return '#11'
     if num == 2:
         return acc + '9'
     if num == 4:
