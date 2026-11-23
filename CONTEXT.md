@@ -145,4 +145,11 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   on fixed-do mini circles), played-note constellation, inner form shape with bar progress / zig-zag / play
   order. One GLSL pass over ~200 primitives from a Script TOP. Draft release notes `live-02-three-circles`.
   Pinned: palette pass soon.
+- **2026-11-23 — session 3c.** Michael's answers: fixed do preferred, movable do as an option; the inner circle
+  shows PHRASING (Stablemates A = 10 + 4, the 10 as 2 + 8 or 8 + 2); names optional (off by default); melodic
+  nodes per bar (null = carry on). Schema: `form.sections[].phrasings`, `melody` (key-free degrees).
+  `harmony.chord_function` names a node over a chord (9 -> 13, #9 over dominants). Stablemates split into A1
+  (into the bridge on C7alt) / B / A2. Notation row in the window (mode-only row). Text TOP spec DAT lesson: it
+  keeps its old text when the table empties and doesn't re-cook on table changes by itself (hide by font alpha;
+  give the text param an expression that reads the table).
 

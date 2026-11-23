@@ -60,8 +60,8 @@ when the harmony says so. Keys are offered as key signatures (C, G, D, A, E, B, 
 Cb), so choosing Db rather than C# is a musical choice that also chooses the colours.
 
 First key-free charts: `charts/blues_jazz.yaml` (12-bar jazz blues, default F),
-`charts/rhythm_changes.yaml` (AABA, default Bb) and `charts/stablemates.yaml` (Golson, A14 B8 A14 = 36 bars,
-default Db, Michael's changes; uses `form.order: [A, B, A]`). Stablemates' `E-7 A7` in Db is written `#ii-7 #V7`
+`charts/rhythm_changes.yaml` (AABA, default Bb) and `charts/stablemates.yaml` (Golson, A1 14, B 8, A2 14 = 36 bars,
+default Db, Michael's changes and melodic nodes; A1 turns into the bridge on C7alt, A2 ends on Dbmaj7). Stablemates' `E-7 A7` in Db is written `#ii-7 #V7`
 (Michael spells E, not Fb), so in C it reads `D#-7 G#7`; a per-key respelling is an open question.
 
 ### Overrides and variants

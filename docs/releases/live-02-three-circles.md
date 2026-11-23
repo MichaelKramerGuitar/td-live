@@ -1,4 +1,4 @@
-# live-02 — Three Circles (draft: Michael decides when it's a release)
+# live-02 — Three Circles
 
 TDlive learns to draw Michael's own chart notation live, prototyped on Benny Golson's *Stablemates*, and the
 rig gets a cleaner, more playable window.
@@ -17,7 +17,12 @@ rig gets a cleaner, more playable window.
     fifths-space.
   - *Inner — form:* the current section's shape (sides = bars), its zig-zag multiplier and repeat hashes, the
     bar being played filling in gold; dots underneath show the sections in play order.
-- **Stablemates** — Michael's changes (A 14, B 8, A 14), stored key-free, spelled exactly as he writes it in Db.
+- **Stablemates** — Michael's changes and melodic nodes (A1 14, B 8, A2 14), stored key-free, spelled exactly as
+  he writes it in Db; phrased 10 + 4, the 10 heard as 2 + 8 or 8 + 2.
+- **Melodic nodes and phrasing in the chart format** — melody notes per bar as key-free degrees, named live
+  over each chord (`F#  9 → 13`); alternative phrasings per section.
+- **Notation row** in the window: Caption, Harmonic map, Note names, Fixed / Movable do, Phrasing
+  (1st / 2nd / alternate every chorus).
 - **A new TDlive window** — header status line (out of the picture), captioned controls, buttons sized to their
   text, grouped rows, colours for armed / recording / rehearsing / playing / exporting.
 - **Click buttons** — Visual (opens/closes its window) and Audio, and *Every*: beat, bar, or **form** (section
@@ -27,5 +32,4 @@ rig gets a cleaner, more playable window.
 
 ## Notes
 
-- Open in the notation: how to draw a 14-bar A (heptagon ×2 for now), fixed vs relative do inside the harmony
-  circles (fixed: C at the top of each), melodic nodes from the chart (none yet; live notes only).
+- Next: the palette pass (Michael hones the colours by eye).
