@@ -131,3 +131,11 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   and the gesture whisp (`modules/landscape/gesture.py`: hand-position string/fret guess, palette colour, puffs that
   rise/drift/fade). Cook-loop lesson: Script CHOP memory via `scriptOp.store/fetch` re-cooks itself in a loop —
   keep per-op state in a module-level dict. Verified live: tracks Michael's line at ~0.95 clarity.
+- **2026-11-23 — session 3.** Export progress (ffmpeg `-progress`: %, bar, ETA). TDlive window redesigned:
+  header status line (moved out of the preview), captions, buttons sized to their widest text, grouped rows,
+  state colours. Project "Michael's TouchDesigner Projects" created on claude.ai (these docs live there too).
+  `charts/stablemates.yaml` from Michael's changes (spells exactly as written in Db; `9`/`13` qualities added).
+  Click: Visual / Audio / Every buttons; click every beat, bar, or **form** (section tops + count into each
+  section; big number = bar in section). Next: M6 circles mode, prototyped on Stablemates (Michael: how to draw
+  the 14-bar A; melodic nodes).
+

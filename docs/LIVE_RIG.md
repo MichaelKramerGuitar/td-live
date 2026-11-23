@@ -15,7 +15,8 @@
    progress on the right), the **preview**, then three rows of controls (captioned ones show just their value):
    - **CHART**, **KEY**, **TEMPO − bpm +** (2 bpm per click; click the number to go back to the chart's tempo),
      then **Rehearse** and **● Record** (each becomes **■ Stop** while running; the armed one has a coloured edge).
-   - **MODE**, **ME** (landscape: Outline / Ghost / Negative), **CAMERA** (you in or out of the shot), **FORMAT**.
+   - **MODE**, **ME** (landscape: Outline / Ghost / Negative), **CAMERA** (you in or out of the shot), **FORMAT**,
+     **CLICK** Visual / Audio and **EVERY** Beat / Bar / Form (see Click below).
    - **TAKE** (cycles your takes, newest first; a new take is selected automatically), **▶ Play** / **■ Stop**,
      **Export**, **Delete**.
    Buttons are sized to the widest text they can show (`build_live.py` › `WIDEST`); greyed text = idle-only.
@@ -42,7 +43,14 @@ The countdown appears **only in the preview** and the status line in the header,
 
 ### Click (never recorded)
 
-`show` › Click page: **Click** = Off / Visual / Audio / Visual + Audio, **Click Volume**, **Open Click Window**.
+In the TDlive window: **CLICK Visual** (turns the visual click on and opens its window; click again to close it),
+**Audio** (the tick to the Focusrite), **EVERY Beat / Bar / Form**:
+- **Beat**: every beat (higher on beat 1, highest at the top of a section). Big number = beat.
+- **Bar**: beat 1 only. Big number = bar within the section.
+- **Form** (benchmarks): silent inside a section except the top of each section (gold flash, section name),
+  then a count into the next section on its last bar (4 3 2 1, "→ B"). Big number = bar within the section.
+- The count-in always clicks every beat.
+Same settings on `show` › Click page (**Click**, **Click Every**, **Click Volume**, **Open Click Window**).
 Needs a chart (it follows the song's tempo, including the count-in).
 - Visual: the *TDlive click* window (always on top; put it on another monitor) flashes every beat, warm on beat 1,
   with the beat number, bar and chord -> next chord; plus a small dot in the TDlive window preview.

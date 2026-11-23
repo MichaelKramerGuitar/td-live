@@ -22,8 +22,10 @@ key with **letter arithmetic**: `bVI` in C is Ab (never G#), the seventh of a di
 when the harmony says so. Keys are offered as key signatures (C, G, D, A, E, B, F#, C#, F, Bb, Eb, Ab, Db, Gb,
 Cb), so choosing Db rather than C# is a musical choice that also chooses the colours.
 
-First key-free charts: `charts/blues_jazz.yaml` (12-bar jazz blues, default F) and
-`charts/rhythm_changes.yaml` (AABA, default Bb).
+First key-free charts: `charts/blues_jazz.yaml` (12-bar jazz blues, default F),
+`charts/rhythm_changes.yaml` (AABA, default Bb) and `charts/stablemates.yaml` (Golson, A14 B8 A14 = 36 bars,
+default Db, Michael's changes; uses `form.order: [A, B, A]`). Stablemates' `E-7 A7` in Db is written `#ii-7 #V7`
+(Michael spells E, not Fb), so in C it reads `D#-7 G#7`; a per-key respelling is an open question.
 
 ### Overrides and variants
 
