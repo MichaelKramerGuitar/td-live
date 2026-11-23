@@ -339,7 +339,8 @@ if not has(SH, 'Mode'):
     pg.appendStr('Status', label='Status')
     SH.par.Countdown = 4
     SH.par.Camerainshot = True
-MODES = [('mirror', 'Mirror (camera)'), ('ripples', 'Ripples'), ('landscape', 'Fretboard Landscape')]
+MODES = [('mirror', 'Mirror (camera)'), ('ripples', 'Ripples'), ('landscape', 'Fretboard Landscape'),
+         ('notation', 'Notation (three circles)')]
 SH.par.Mode.menuNames = [m for m, _ in MODES]
 SH.par.Mode.menuLabels = [l for _, l in MODES]
 SH.par.Mode.readOnly = False
@@ -364,6 +365,7 @@ keys.par.ontooff = keys.par.whileon = keys.par.whileoff = keys.par.valuechange =
 
 # ---------------------------------------------------------------- mode: fretboard landscape
 exec(open(project.folder + '/scripts/build_landscape.py', encoding='utf-8').read(), globals())
+exec(open(project.folder + '/scripts/build_notation.py', encoding='utf-8').read(), globals())   # three circles
 REPORT['landscape'] = landscape_report
 
 # ---------------------------------------------------------------- output
