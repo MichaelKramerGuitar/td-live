@@ -182,7 +182,6 @@ def onCook(scriptOp):
         w = tone_w.get(name, 0.0)
         pt = on_circle(fifths_angle(pc), R_RING)
         if names_on:
-            P.disc(pt, 0.026, -1.0, WHITE)            # clear the ring behind the letter
             labels.append((pt, name, 0.45 + 0.55 * min(1.0, w * 1.5) if name in tone_w else 0.4))
             if w > 0:
                 P.ring(pt, 0.027, 0.0015, 0.25 + 0.5 * w, colour(name), 0.5 * w)
@@ -317,9 +316,12 @@ def names_table(dat):
     dat.appendRow(['text', 'x', 'y', 'alpha'])
     W, H = op.Config.par.Width.eval(), op.Config.par.Height.eval()
     unit = min(W, H) / 2.0
+    fs = min(W, H) * 0.03                       # = the names Text TOP's font size
     for pt, name, alpha in _MEM['names']:
-        dat.appendRow([name.replace('b', '♭').replace('#', '♯'), W / 2 + pt[0] * unit,
-                       H / 2 + pt[1] * unit, round(alpha, 2)])
+        # the spec places each text by its lower-left corner: centre it on the ring, pushed just outside
+        x = W / 2 + pt[0] * unit * 1.085 - 0.29 * fs * len(name)
+        y = H / 2 + pt[1] * unit * 1.085 - 0.36 * fs
+        dat.appendRow([name, round(x, 1), round(y, 1), round(alpha, 2)])
 
 
 def label():
