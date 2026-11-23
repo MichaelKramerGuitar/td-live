@@ -7,9 +7,10 @@ import glob
 import os
 import shutil
 import subprocess
+import threading
 import time
 
-_JOB = {'proc': None, 'out': '', 'done_at': 0, 'error': ''}
+_JOB = {'proc': None, 'out': '', 'done_at': 0, 'error': '', 'dur': 0.0, 'pos': 0.0, 'started': 0.0}
 
 
 def find_ffmpeg():
@@ -47,17 +48,72 @@ def export_selected():
     portrait = 'portrait' in os.path.basename(sel)
     w, h = (1080, 1920) if portrait else (1920, 1080)
     out = os.path.join(folder, os.path.basename(sel)[:-4] + '_%dx%d.mp4' % (w, h))
-    cmd = [ff, '-y', '-loglevel', 'error', '-i', src,
+    cmd = [ff, '-y', '-loglevel', 'error', '-nostats', '-progress', 'pipe:1', '-i', src,
            '-vf', 'scale=%d:%d:flags=lanczos,format=yuv420p' % (w, h),
            '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-profile:v', 'high',
            '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart', out]
     flags = 0x08000000 if os.name == 'nt' else 0     # CREATE_NO_WINDOW: no console popping up
-    _JOB.update(proc=subprocess.Popen(cmd, creationflags=flags), out=out, error='', done_at=0)
+    proc = subprocess.Popen(cmd, creationflags=flags, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                            stdin=subprocess.DEVNULL, text=True, bufsize=1)
+    _JOB.update(proc=proc, out=out, error='', done_at=0, dur=_duration(ff, src), pos=0.0, started=time.time())
+    threading.Thread(target=_watch, args=(proc,), daemon=True).start()
+
+
+def _duration(ff, src):
+    # Length of the take in seconds, via ffprobe (installed next to ffmpeg).
+    probe = os.path.join(os.path.dirname(ff), 'ffprobe' + ('.exe' if ff.lower().endswith('.exe') else ''))
+    if not os.path.exists(probe):
+        probe = shutil.which('ffprobe') or probe
+    try:
+        r = subprocess.run([probe, '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src],
+                           capture_output=True, text=True, timeout=10,
+                           creationflags=0x08000000 if os.name == 'nt' else 0)
+        return float(r.stdout.strip())
+    except Exception:
+        return 0.0
+
+
+def _watch(proc):
+    # Background thread: ffmpeg's -progress lines ("out_time_us=12345678") -> _JOB['pos'] in seconds.
+    for line in proc.stdout:
+        k, _, v = line.strip().partition('=')
+        if k in ('out_time_us', 'out_time_ms'):          # both are microseconds (ffmpeg quirk)
+            try:
+                _JOB['pos'] = max(0.0, int(v) / 1e6)
+            except ValueError:
+                pass
+
+
+def progress():
+    # 0..1 while exporting, -1 when idle.
+    if not busy():
+        return -1.0
+    if _JOB['dur'] <= 0:
+        return 0.0
+    return min(1.0, _JOB['pos'] / _JOB['dur'])
+
+
+def eta():
+    f = progress()
+    if f <= 0.02:
+        return ''
+    left = (time.time() - _JOB['started']) * (1 - f) / f
+    return '%d:%02d' % (left // 60, left % 60)
+
+
+def status():
+    # Long form for the progress bar under the buttons.
+    f = progress()
+    if f < 0:
+        return ''
+    e = eta()
+    return 'Exporting %s  %d%%%s' % (os.path.basename(_JOB['out']), round(f * 100), ('  ~' + e + ' left') if e else '')
 
 
 def label():
     if busy():
-        return 'Exporting...'
+        f = progress()
+        return 'Export %d%%' % round(f * 100) if _JOB['dur'] > 0 else 'Exporting...'
     p = _JOB['proc']
     if p is not None and _JOB['done_at'] == 0:
         _JOB['done_at'] = time.time()

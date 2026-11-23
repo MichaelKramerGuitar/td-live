@@ -471,6 +471,25 @@ mc.par.colorb = 0.35
 meter.par.top = mc.path
 meter.par.x, meter.par.y, meter.par.h = 0, BAR_H - 4, 4
 meter.par.w.expr = "max(1, %d * op.Analysis.op('out')['level'])" % PANEL_W
+exb = ensure(pn, containerCOMP, 'export_bar', 0, -500)  # export progress: fills across the top of the button bar
+ef = ensure(exb, constantTOP, 'fill', 0, 0)
+ef.par.resolutionw, ef.par.resolutionh = 8, 8
+ef.par.colorr, ef.par.colorg, ef.par.colorb = 0.35, 0.6, 0.95
+exb.par.top = ef.path
+exb.par.x, exb.par.y, exb.par.h = 0, BAR_H - 10, 5
+exb.par.w.expr = "max(1, %d * op.Show.op('export').module.progress())" % PANEL_W
+exb.par.display.expr = "op.Show.op('export').module.progress() >= 0"
+exs = ensure(pn, containerCOMP, 'export_status', 0, -600)  # "Exporting <take>  42%  ~0:31 left" over the monitor
+et = ensure(exs, textTOP, 'label', 0, 0)
+et.par.outputresolution = 'custom'
+et.par.resolutionw, et.par.resolutionh = PANEL_W, 22
+et.par.fontsizex = 13
+et.par.alignx, et.par.aligny = 'left', 'center'
+et.par.bgcolorr, et.par.bgcolorg, et.par.bgcolorb, et.par.bgalpha = 0, 0, 0, 0.6
+et.par.text.expr = "op.Show.op('export').module.status()"
+exs.par.top = et.path
+exs.par.x, exs.par.y, exs.par.w, exs.par.h = 0, BAR_H, PANEL_W, 22
+exs.par.display.expr = "op.Show.op('export').module.progress() >= 0"
 for old_b in [c for c in pn.children if c.name.startswith('btn_')]:   # rebuild buttons each time
     old_b.destroy()
 BUTTONS = []
