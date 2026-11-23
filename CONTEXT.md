@@ -51,7 +51,9 @@ most useful booking material.
 | **M4 fretboard landscape** | Michael's image (below), first from the chart alone: wells at every chord-scale position, mass = weight, palette colours | the neck bends with the changes — ✅ 2026-11-21 v1 (60 fps; `docs/img/landscape_blues_F.jpg`) |
 | **live-01** | tag: the rig ready for real takes (`docs/releases/live-01-fretboard-landscape.md`) | ✅ 2026-11-22 |
 | **M5 listening** | pitch-class (chroma) analysis; played notes become dynamic masses ("melodic nodes"); later: key suggestion from the first bars | the landscape answers what's played |
-| **M6 the circles** | three-circle notation drawn live from chart + audio | "playing duo" |
+| **M6 the circles** | three-circle notation drawn live from chart + audio | "playing duo" — v1 2026-11-23 (Notation mode, Stablemates) |
+| **live-02** | tag: three circles + new window + click benchmarks (`docs/releases/live-02-three-circles.md`) | Michael's call |
+| **Palette pass** | Michael hones the synesthesia colours by eye (pinned 2026-11-23) | soon |
 
 ### Michael's fretboard landscape (2026-11-21, his description)
 
@@ -138,4 +140,9 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   Click: Visual / Audio / Every buttons; click every beat, bar, or **form** (section tops + count into each
   section; big number = bar in section). Next: M6 circles mode, prototyped on Stablemates (Michael: how to draw
   the 14-bar A; melodic nodes).
+- **2026-11-23 — session 3b.** M6 v1: Notation mode (three circles) — outer meter polygon + accents + beat light,
+  circle of fifths with chord-scale nodes and harmony circles (outside major / inside minor, chord-tone polygons
+  on fixed-do mini circles), played-note constellation, inner form shape with bar progress / zig-zag / play
+  order. One GLSL pass over ~200 primitives from a Script TOP. Draft release notes `live-02-three-circles`.
+  Pinned: palette pass soon.
 

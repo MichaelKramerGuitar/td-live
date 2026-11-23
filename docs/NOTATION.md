@@ -13,6 +13,21 @@ memory aid, and a way of thinking about form and composition. TDlive stores the 
 The live system also needs to know **which chord is sounding in which bar**: that's `changes`, the one part that
 isn't in the drawing. A chart without it is a `sketch`; with it, it's `playable`.
 
+## Drawn live: the Notation mode
+
+TDlive's **Notation (three circles)** mode draws all three circles from the chart, the song clock and the pitch
+follower (`modules/notation/prims.py` -> `draw.frag`; parameters on `visuals/notation` › Notation):
+
+- **Outer:** the meter polygon (flat top; beat 1 starts at the top-left corner and runs clockwise, so beats sit
+  on corners and "ands" mid-side); accent balls from `rhythm.accents`; a light travels it with the beat.
+- **Middle:** the circle of fifths with the current chord-scale's nodes (palette colours of their spelling);
+  harmony circles at each chord's root, outside = major, inside = minor (by the chord's 3rd); inside each, the
+  chord tones on a small circle of fifths (**fixed do** for now: C at the top) joined into a polygon. Current
+  chord bright, next half-lit, the rest faint (toggle *Show The Tune's Harmonic Map*). Played notes flare on the
+  ring and are joined in order.
+- **Inner:** the current section's shape; the bar being played fills in gold; zig-zag strokes = passes around
+  the shape (the current one lit); hashes = repeats; dots = sections in play order.
+
 ## Key-free charts (Roman numerals)
 
 A chart with `changes_notation: roman` writes its changes relative to the key (`I7`, `ii-7`, `#IVo7`, `bVI7`),
