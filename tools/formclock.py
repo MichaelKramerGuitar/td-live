@@ -63,6 +63,18 @@ class Song:
         for section, pass_, nbars in cl.form_plan(chart):
             self.spans.append((start, nbars, section))
             start += nbars
+        self.melody = cl.melody_plan(chart, self.key, cl.form_plan(chart))    # {chorus bar: [notes]}
+
+    def melody_for(self, idx):
+        """Melodic node(s) sounding over chord event `idx`: one per chord if the bar lists one per chord,
+        otherwise the bar's nodes."""
+        ev = self.events[idx]
+        bar = ev[6]
+        notes = self.melody.get(bar) or []
+        same = [i for i, e in enumerate(self.events) if e[6] == bar]
+        if len(notes) > 1 and len(notes) == len(same):
+            return [notes[same.index(idx)]]
+        return notes
 
     def span_at(self, bar):
         """(index, first bar, bars, name) of the section containing chorus bar `bar`."""

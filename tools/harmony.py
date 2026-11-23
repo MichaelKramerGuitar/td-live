@@ -56,6 +56,30 @@ def spell(root, interval):
     return new_letter + ACC_TEXT[acc]
 
 
+def interval_between(root, note):
+    """Spelled interval from root up to note: ('Db', 'F#') -> '#3'; ('E', 'F#') -> '2'. Simple (1..7)."""
+    lr, _ = parse_note(root)
+    ln, _ = parse_note(note)
+    n = (LETTERS.index(ln) - LETTERS.index(lr)) % 7
+    alt = (pc(note) - pc(root) - MAJOR_STEPS[n] + 6) % 12 - 6
+    return {-2: 'bb', -1: 'b', 0: '', 1: '#', 2: '##'}[alt] + str(n + 1)
+
+
+def chord_function(root, note, quality=''):
+    """What a melody note is over a chord, the way a jazz player says it: 9, b13, #11, 3, b7 ...
+    Seconds, fourths and sixths are named as tensions (9, 11, 13) except the 6 of a 6 chord; a #5 over an
+    altered/dominant chord is b13 when spelled as a 6th."""
+    iv = interval_between(root, note)
+    acc, num = iv[:-1], int(iv[-1])
+    if num == 2:
+        return acc + '9'
+    if num == 4:
+        return acc + '11'
+    if num == 6 and not quality.startswith(('6', '-6')):
+        return acc + '13'
+    return acc + str(num)
+
+
 # ---------------------------------------------------------------- chord qualities
 # quality -> (chord tones, default chord-scale). Intervals relative to the chord root.
 # Chord-scale defaults are a starting point; a chart can override per chord with "scale:".

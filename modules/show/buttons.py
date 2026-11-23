@@ -50,6 +50,17 @@ def onOffToOn(panelValue):
         win = op.Click.op('window')
         if name == 'btn_clickv':
             (win.par.winopen if v else win.par.winclose).pulse()
+    elif name in ('btn_ncaption', 'btn_nmap', 'btn_nnames'):     # Notation mode toggles
+        N = op.Visuals.op('notation')
+        par = {'btn_ncaption': N.par.Labels, 'btn_nmap': N.par.Allchords, 'btn_nnames': N.par.Names}[name]
+        par.val = not par.eval()
+    elif name == 'btn_ndo':
+        N = op.Visuals.op('notation')
+        N.par.Do = 'fixed' if N.par.Do == 'movable' else 'movable'
+    elif name == 'btn_nphrasing':
+        N = op.Visuals.op('notation')
+        names = list(N.par.Phrasing.menuNames)
+        N.par.Phrasing = names[(names.index(N.par.Phrasing.eval()) + 1) % len(names)]
     elif name == 'btn_clickevery':
         S = op.Show
         names = list(S.par.Clickevery.menuNames)

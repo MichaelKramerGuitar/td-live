@@ -200,6 +200,17 @@ def check_chart(chart):
                         chord_root(sym)
                 except ValueError as e:
                     out.append('changes/%s bar %d: %s' % (name, i + 1, e))
+    for sec in chart['form']['sections']:
+        for k, ph in enumerate(sec.get('phrasings') or []):
+            total = sum(g if isinstance(g, int) else sum(g) for g in ph)
+            if total != section_bars(sec):
+                out.append('form/%s phrasing %d: groups add up to %d bars, section has %d' % (
+                    sec['name'], k + 1, total, section_bars(sec)))
+    for name, bars in (chart.get('melody') or {}).items():
+        if name not in bars_by_name:
+            out.append('melody: unknown section %r' % name)
+        elif len(bars) > bars_by_name[name]:
+            out.append('melody/%s: %d bars written, form says %d' % (name, len(bars), bars_by_name[name]))
     if chart.get('status') == 'playable' and not chart.get('changes'):
         out.append('status is playable but there are no changes')
     return out
@@ -239,3 +250,39 @@ def describe(chart):
     if nodes:
         lines.append('  melodic nodes: ' + ', '.join(nodes))
     return '\n'.join(lines)
+
+
+def phrasing_groups(section, choice=0):
+    """The section's phrase groups for hearing `choice` (wraps): [[sub, sub], [sub]] — always lists of ints.
+    No phrasings: one group of shape x multiplier bars, its sub-groups the zig-zag passes."""
+    ph = section.get('phrasings')
+    if not ph:
+        return [[section['shape']] * section.get('multiplier', 1)]
+    return [g if isinstance(g, list) else [g] for g in ph[choice % len(ph)]]
+
+
+def phrasing_text(section, choice=0):
+    """'2+8 · 4' for display."""
+    if not section.get('phrasings'):
+        return 'as written'
+    return ' \u00b7 '.join('+'.join(str(x) for x in g) for g in phrasing_groups(section, choice))
+
+
+def melody_plan(chart, key, plan):
+    """Melodic nodes per chorus bar: {bar: [spelled notes]} following the form plan (from form_plan);
+    a null bar carries the previous node on (across sections too)."""
+    mel = chart.get('melody') or {}
+    out, prev, bar = {}, [], 0
+    for name, pass_, nbars in plan:
+        bars = mel.get(name) or []
+        for i in range(nbars):
+            bar += 1
+            e = bars[i] if i < len(bars) else None
+            if e is None:
+                cur = prev
+            else:
+                degs = e if isinstance(e, list) else [e]
+                cur = [harmony.spell(key, d) for d in degs]
+            out[bar] = cur
+            prev = cur
+    return out

@@ -16,7 +16,7 @@ rhythm:
   feel: swing
 
 pitch:
-  melodic_nodes: []          # Michael: the melody notes you'd circle
+  melodic_nodes: []          # (per-bar melodic nodes live in `melody` below)
   harmonies:
     - { quality: major, symbol: Imaj7 }
     - { quality: minor, symbol: ii-7 }
@@ -30,7 +30,10 @@ pitch:
 
 form:
   sections:
-    - { name: A, shape: 7, multiplier: 2, note: "14 bars: drawn as a heptagon x2 for now (Michael to decide)" }
+    - name: A
+      shape: 14
+      phrasings: [[[2, 8], 4], [[8, 2], 4]]    # Michael: 10 + 4, the 10 heard as 2 + 8 or as 8 + 2
+      note: "14 bars, phrased 10 + 4"
     - { name: B, shape: 8, note: "bridge: iii-7 IV13, then dominants sliding down by half steps from #IV7alt" }
   order: [A, B, A]
 
@@ -59,3 +62,31 @@ changes:
     - [[VI7, 4]]                       # Bb7
     - [["#V7", 4]]                     # A7
     - [[V7, 4]]                        # Ab7
+
+# Melodic nodes (Michael, 2026-11-23), as degrees of the key; null = the previous node carries on.
+# In Db:                    (letters)            over the chords
+melody:
+  A:
+    - "#3"                  # F#   9 of E-7 -> 13 of A7
+    - "2"                   # Eb
+    - "5"                   # Ab
+    - null                  # (Ab: b13 of C7alt)
+    - null                  # (Ab)
+    - null                  # (Ab)
+    - "1"                   # Db
+    - ["7", "#2"]           # C over G-7b5, E over C7alt
+    - "5"                   # Ab
+    - null                  # (Ab)
+    - "3"                   # F
+    - "#2"                  # E
+    - "2"                   # Eb
+    - null                  # (Eb)
+  B:
+    - "5"                   # Ab
+    - null                  # (Ab: 9 of Gb13)
+    - "2"                   # Eb
+    - "7"                   # C
+    - "#6"                  # B
+    - "5"                   # Ab
+    - "#7"                  # C#
+    - "7"                   # C

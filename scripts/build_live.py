@@ -457,13 +457,18 @@ FONT, FONT_SIZE = 'Segoe UI', 15
 BG = (0.055, 0.058, 0.07)
 CAP = {'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
        'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE', 'btn_clickv': 'CLICK',
-       'btn_clickevery': 'EVERY'}
-GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me'}
+       'btn_clickevery': 'EVERY', 'btn_ncaption': 'CAPTION', 'btn_nmap': 'HARMONIC MAP', 'btn_nnames': 'NOTE NAMES',
+       'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING'}
+GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
+        'btn_nnames', 'btn_ndo', 'btn_nphrasing'}
 ROWS = [   # groups of buttons per row
     [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up'], ['btn_rehearse', 'btn_record']],
     [['btn_mode', 'btn_me', 'btn_camera', 'btn_format'], ['btn_clickv', 'btn_clicka', 'btn_clickevery']],
     [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
+    [['btn_ncaption', 'btn_nmap', 'btn_nnames', 'btn_ndo', 'btn_nphrasing']],     # mode row: Notation
 ]
+MODE_ONLY = {'btn_ncaption': 'notation', 'btn_nmap': 'notation', 'btn_nnames': 'notation', 'btn_ndo': 'notation',
+             'btn_nphrasing': 'notation'}
 WIDEST = {   # the widest text each button can show (sets its width)
     'btn_chart': list(op.Song.par.Chart.menuLabels) or ['no chart'],
     'btn_key': ['Gb (chart)', 'C#'],
@@ -474,6 +479,8 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_take': ['Sep 30 · 23:59', 'none'], 'btn_play': ['▶ Play', '■ Stop'],
     'btn_export': ['Export 100%', 'Exported ✓'], 'btn_delete': ['Delete?'],
     'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
+    'btn_ncaption': ['On', 'Off'], 'btn_nmap': ['On', 'Off'], 'btn_nnames': ['On', 'Off'],
+    'btn_ndo': ['Fixed do', 'Movable do'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
 }
 CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
@@ -545,6 +552,9 @@ ACTIVE = {
     'btn_export': ("op.Show.op('export').module.progress() >= 0", (0.20, 0.36, 0.62)),
     'btn_clickv': ("op.Show.par.Click.eval() in ('visual', 'both')", (0.30, 0.34, 0.50)),
     'btn_clicka': ("op.Show.par.Click.eval() in ('audio', 'both')", (0.30, 0.34, 0.50)),
+    'btn_ncaption': ("op.Visuals.op('notation').par.Labels", (0.30, 0.34, 0.50)),
+    'btn_nmap': ("op.Visuals.op('notation').par.Allchords", (0.30, 0.34, 0.50)),
+    'btn_nnames': ("op.Visuals.op('notation').par.Names", (0.30, 0.34, 0.50)),
 }
 ARMED = {'btn_record': "op.Show.par.Armed == 'record'", 'btn_rehearse': "op.Show.par.Armed == 'rehearse'"}
 IDLE_ONLY = {'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
@@ -618,6 +628,8 @@ for r, groups in enumerate(ROWS):
             if bn == 'btn_record':                       # the record dot stays red
                 t.par.fontcolorg.expr = t.par.fontcolorb.expr = "0.93 if (%s) else 0.45" % ACTIVE[bn][0]
             b.par.top = t.path
+            if bn in MODE_ONLY:
+                b.par.display.expr = "op.Show.par.Mode == %r" % MODE_ONLY[bn]
             if bn in CAP:
                 c = pn.create(containerCOMP, 'cap_' + bn[4:])
                 c.nodeX, c.nodeY = 130 * len(BUTTONS), -350
@@ -631,6 +643,8 @@ for r, groups in enumerate(ROWS):
                 ct_.par.bgalpha = 0
                 ct_.par.text = CAP[bn]
                 c.par.top = ct_.path
+                if bn in MODE_ONLY:
+                    c.par.display.expr = "op.Show.par.Mode == %r" % MODE_ONLY[bn]
             BUTTONS.append((bn, bn))
             x += w
 LABELS = {
@@ -652,6 +666,11 @@ LABELS = {
     'btn_clickv': "'Visual'",
     'btn_clicka': "'Audio'",
     'btn_clickevery': "op.Show.par.Clickevery.eval().capitalize()",
+    'btn_ncaption': "'On' if op.Visuals.op('notation').par.Labels else 'Off'",
+    'btn_nmap': "'On' if op.Visuals.op('notation').par.Allchords else 'Off'",
+    'btn_nnames': "'On' if op.Visuals.op('notation').par.Names else 'Off'",
+    'btn_ndo': "'Movable do' if op.Visuals.op('notation').par.Do == 'movable' else 'Fixed do'",
+    'btn_nphrasing': "op.Visuals.op('notation').op('prims_callbacks').module.phrasing_label()",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

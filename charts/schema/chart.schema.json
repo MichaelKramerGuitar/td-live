@@ -18,6 +18,11 @@
       "description": "A spelled pitch class: letter + accidentals (# or b). Spelling matters (palette colours follow spelling). 'F#/Gb' = spelling not decided yet.",
       "type": "string",
       "pattern": "^[A-G](##|#|bb|b)?(/[A-G](##|#|bb|b)?)?$"
+    },
+    "degree": {
+      "type": "string",
+      "pattern": "^(bb|b|##|#)?[1-7]$",
+      "description": "Scale degree of the key, spelled: '5', '#3', 'b7'."
     }
   },
   "properties": {
@@ -229,6 +234,31 @@
               },
               "note": {
                 "type": "string"
+              },
+              "phrasings": {
+                "description": "How the section's bars group into phrases (the INNER circle shows phrasing). A list of alternative hearings, first = default; each is a list of groups, a group is a number of bars or a list of sub-groups. Stablemates A: [[[2, 8], 4], [[8, 2], 4]] = 10 + 4, the 10 heard as 2 + 8 or 8 + 2. Groups must add up to the section's bars.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1
+                        }
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -286,6 +316,30 @@
     "extends_from": {
       "type": "string",
       "description": "(set by the loader) the parent this chart was resolved from."
+    },
+    "melody": {
+      "description": "Melodic nodes per bar, per section (the important melody notes, drawn on the MIDDLE circle). Key-free: scale degrees of the key like the Roman numerals ('5', '#3', 'b7'). Per bar: a degree, a list of degrees (one per chord in that bar, in order; otherwise all apply to the whole bar), or null = the previous bar's node carries on.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/degree"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/degree"
+              }
+            }
+          ]
+        }
+      }
     }
   }
 }

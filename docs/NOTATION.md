@@ -25,8 +25,30 @@ follower (`modules/notation/prims.py` -> `draw.frag`; parameters on `visuals/not
   chord tones on a small circle of fifths (**fixed do** for now: C at the top) joined into a polygon. Current
   chord bright, next half-lit, the rest faint (toggle *Show The Tune's Harmonic Map*). Played notes flare on the
   ring and are joined in order.
-- **Inner:** the current section's shape; the bar being played fills in gold; zig-zag strokes = passes around
-  the shape (the current one lit); hashes = repeats; dots = sections in play order.
+- **Melodic nodes** (chart `melody`): a ring on the circle of fifths and a ring at that note inside the current
+  harmony circle, so you see what it is over the chord; the caption names it (`F#  9 → 13`: the 9th of E-7
+  becomes the 13th of A7). The next node shows as a faint ring.
+- **Inner:** phrasing. The current phrase group's shape (sides = bars), gold spokes where its sub-groups begin,
+  the bar being played filling in gold; small shapes below = the section's phrase groups; dots above = sections
+  in play order. Sections without `phrasings` use shape × zig-zag as before.
+- TDlive window, Notation row: **CAPTION**, **HARMONIC MAP** (all chords faint), **NOTE NAMES**, **HARMONY
+  CIRCLES** fixed do / movable do (root at the top: same quality = same shape), **PHRASING** (1st / 2nd hearing
+  / alternate every chorus).
+
+## Phrasing and melodic nodes in the chart (schema 0.2 additions)
+
+```yaml
+form:
+  sections:
+    - name: A
+      shape: 14
+      phrasings: [[[2, 8], 4], [[8, 2], 4]]   # 10 + 4, the 10 heard as 2 + 8 or as 8 + 2 (first = default)
+melody:                                      # degrees of the key (key-free, like the numerals)
+  A: ["#3", "2", "5", null, ...]             # null = the previous node carries on
+     # a bar can list one node per chord: ["7", "#2"]  (C over G-7b5, E over C7alt in Db)
+```
+
+A group is a number of bars or a list of sub-groups; groups must add up to the section's bars.
 
 ## Key-free charts (Roman numerals)
 
