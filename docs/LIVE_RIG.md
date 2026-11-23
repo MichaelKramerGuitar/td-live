@@ -11,19 +11,22 @@
 4. **Space** starts whatever is armed (the hint in the top-left corner says which) and stops anything running.
    **R** arms Record, **H** arms reHearse, **Esc** stops. Keys work while a TouchDesigner window has focus;
    use the TDlive window, because in the network editor Space also plays/pauses the timeline.
-5. The buttons, in two rows:
-   - **Rehearse**, **● Record** (each becomes **Stop** while running), **Chart**, **Key**, **− bpm +**
-     (2 bpm per click; click the number to go back to the chart's tempo).
-   - **Mode**, **Me** (landscape: Outline / Ghost / Negative), **Cam** (you in or out of the shot), **16:9 / 9:16**,
-     **Take** (cycles your takes, newest first; a new take is selected automatically), **▶ Play** / **■ Stop**.
-   Chart, Key, Tempo, Format, Take and Play only work while idle.
+5. The TDlive window: a **header** (what's happening: armed / count-in / REC time, chart, bar, chord; export
+   progress on the right), the **preview**, then three rows of controls (captioned ones show just their value):
+   - **CHART**, **KEY**, **TEMPO − bpm +** (2 bpm per click; click the number to go back to the chart's tempo),
+     then **Rehearse** and **● Record** (each becomes **■ Stop** while running; the armed one has a coloured edge).
+   - **MODE**, **ME** (landscape: Outline / Ghost / Negative), **CAMERA** (you in or out of the shot), **FORMAT**.
+   - **TAKE** (cycles your takes, newest first; a new take is selected automatically), **▶ Play** / **■ Stop**,
+     **Export**, **Delete**.
+   Buttons are sized to the widest text they can show (`build_live.py` › `WIDEST`); greyed text = idle-only.
+   Chart, Key, Tempo, Format, Take, Play, Export and Delete only work while idle.
    **Playback** shows the take in the TDlive window and sends its sound to the Focusrite; Space or Stop ends it,
    and starting a Rehearse/Record ends it too. The recorder never records playback.
-   **Delete** (second row): click once (it reads **Delete?**), again within 4 s to delete the selected take. It
+   **Delete**: click once (it reads **Delete?**), again within 4 s to delete the selected take. It
    disappears from the list at once; the file is removed as soon as Windows lets go of it (TD can keep a played
    movie open), at the latest at the next start (pending list: `Takes/_delete_pending.txt`).
    **Export** makes a playable copy of the selected take in `Exports/`: H.264 + AAC .mp4 upscaled to 1080p
-   (1920x1080, or 1080x1920 for 9:16), ready for YouTube/Instagram, in the background. Needs ffmpeg once:
+   (1920x1080, or 1080x1920 for 9:16), ready for YouTube/Instagram, in the background (progress in the button, a blue bar and the header). Needs ffmpeg once:
    `winget install Gyan.FFmpeg` in a terminal (or set `config` › Export › ffmpeg.exe). Takes are the staging
    area (Hap: perfect for recording, but most players can't open it); exports are what you keep and share.
 7. **Me** (landscape) cycles Outline / Ghost / Negative behind the land, then a corner tile ↖ ↗ ↙ ↘ (your
@@ -35,7 +38,7 @@
    ending on the downbeat of bar 1. The status line then shows chorus, bar and chord. Tempo: `song` › Tempo
    (each chart has a default).
 
-The countdown and the status line appear **only in the preview**, never in a take.
+The countdown appears **only in the preview** and the status line in the header, never in a take.
 
 ### Click (never recorded)
 
