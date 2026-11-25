@@ -243,10 +243,10 @@ def onCook(scriptOp):
         hn = math.hypot(*hd) or 1.0
         hd = (hd[0] / hn, hd[1] / hn)
         _MEM['heading'] = hd
-        back, up, ahead = 0.16, 0.055 + 0.01 * math.sin(t * 1.3), 0.35
+        back, up, ahead = 0.2, 0.045 + 0.008 * math.sin(t * 1.3), 0.22
         ex_, ez_ = c[0] - hd[0] * back, c[2] - hd[1] * back
         eye = (ex_, max(height(ex_, ez_, W) + 0.03, c[1] + up), ez_)
-        look = (c[0] + hd[0] * ahead, c[1] - 0.02, c[2] + hd[1] * ahead)
+        look = (c[0] + hd[0] * ahead, c[1] + 0.005, c[2] + hd[1] * ahead)
         if _MEM.get('bc') is None:
             _MEM['bc'] = (eye, look)
         e0, l0 = _MEM['bc']
@@ -299,6 +299,7 @@ def onCook(scriptOp):
         is_home = key == home
         r = (0.016 if is_home else 0.011 if key in cohort else 0.007) * sc * 1.4
         al = 1.0 if (is_home or here) else 0.75 if key in cohort else 0.45
+        r = min(r, 0.045)                                     # nothing balloons up close
         P.disc(q, r * (1.4 if here else 1.0), al, colour(key), 1.4 if here else 0.6 if is_home else 0.2)
         if is_home:
             P.ring(q, r * 1.9, 0.0018, 0.6, (1.0, 0.92, 0.75), 0.3)
@@ -313,7 +314,7 @@ def onCook(scriptOp):
         q = cam.p(x, y, z)
         sc = cam.scale(x, y, z)
         lit = (not is_moon) and i == deg
-        P.disc(q, (0.009 if lit else 0.005) * sc, 1.0 if lit else 0.55, colour(note), 1.2 if lit else 0.15)
+        P.disc(q, min(0.03, (0.009 if lit else 0.005) * sc), 1.0 if lit else 0.55, colour(note), 1.2 if lit else 0.15)
     # orbit ring (as a polygon)
     prev = None
     for i in range(37):
@@ -324,7 +325,7 @@ def onCook(scriptOp):
         prev = q
     if is_moon:
         q = cam.p(px, target[1], pz)
-        P.disc(q, 0.006 * cam.scale(px, target[1], pz), 1.0, colour(cur.root), 1.3)
+        P.disc(q, min(0.025, 0.006 * cam.scale(px, target[1], pz)), 1.0, colour(cur.root), 1.3)
 
     # ---- comet, trail, tether home
     tr = _MEM['trail']
@@ -334,7 +335,7 @@ def onCook(scriptOp):
         f = i / len(tr)
         P.line(a_, b_, 0.0025 * f + 0.0008, 0.8 * f, col, 0.6 * f)
     q = cam.p(*c)
-    P.disc(q, 0.008 * cam.scale(*c), 1.0, (1.0, 0.97, 0.9), 1.6)
+    P.disc(q, min(0.022, 0.008 * cam.scale(*c)), 1.0, (1.0, 0.97, 0.9), 1.6)
     if L.par.Tether.eval():
         tension, parts = j.tension(home, local, cur.symbol.split('/')[0], depth=info['depth'])
         f = min(1.0, tension / 6.0)
