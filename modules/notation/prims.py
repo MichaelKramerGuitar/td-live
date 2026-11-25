@@ -153,13 +153,13 @@ def onCook(scriptOp):
     tone_w = {r[0].val: float(r[3].val) for r in tones_t.rows()[1:]} if tones_t.numRows > 1 else {}
 
     # ---- OUTER: rhythm polygon, accents, the travelling beat
-    meter = s.chart['rhythm']['meter']['beats']
+    meter = s.beats_per_bar                         # the performance meter (Song › Meter) or the chart's
     V = poly_vertices(meter, r_in=R_OUT)
     for k in range(meter):
         lit = playing and k == beat - 1
         P.line(V[k], V[k + 1], 0.0035, 0.55 if lit else 0.22, WHITE, 0.6 if lit else 0.15)
         P.disc(V[k], 0.006, 0.5, WHITE)
-    for acc in s.chart['rhythm'].get('accents') or []:
+    for acc in s.accents:
         k = int(math.floor(acc - 1)) % meter
         pt = lerp(V[k], V[k + 1], (acc - 1) - math.floor(acc - 1))
         hot = playing and abs(((beat - 1) + phase) - (acc - 1)) < 0.18

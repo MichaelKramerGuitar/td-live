@@ -54,12 +54,14 @@ def song():
     cid = S.par.Chart.eval()
     path = os.path.join(project.folder, 'charts', cid + '.yaml')
     key = S.par.Key.eval()
-    sig = (cid, key, S.par.Tempo.eval(), os.path.getmtime(path) if os.path.exists(path) else 0)
+    meter = S.par.Meter.eval() if hasattr(S.par, 'Meter') else 'chart'
+    sig = (cid, key, S.par.Tempo.eval(), meter, os.path.getmtime(path) if os.path.exists(path) else 0)
     if sig != _CACHE['sig']:
         _CACHE['sig'] = sig
         try:
             chart = cl.load_chart(path)
-            _CACHE['song'] = fc.Song(chart, key=None if key == 'default' else key, bpm=S.par.Tempo.eval())
+            _CACHE['song'] = fc.Song(chart, key=None if key == 'default' else key, bpm=S.par.Tempo.eval(),
+                                     meter=meter)
             _CACHE['error'] = ''
         except Exception as e:
             _CACHE['song'] = None
@@ -191,3 +193,11 @@ def click_info():
         return _CLICK['info']
     m = op.Show.par.Click.eval()
     return 'click: %s, every %s' % (m, op.Show.par.Clickevery.eval()) if hasattr(op.Show.par, 'Clickevery') else m
+
+
+def meter_label():
+    """For the TDlive window's METER button: '4/4', '7/4 4+3' ..."""
+    s = song()
+    if s is None:
+        return op.Song.par.Meter.eval()
+    return s.meter_text.replace(' (', ' ').replace(')', '')

@@ -340,6 +340,36 @@
           ]
         }
       }
+    },
+    "analysis": {
+      "description": "Michael's hearing of the harmony (the Journey modes read it): `home` as a numeral of the key (usually I), `notes`, and per section a list of bars, each a list of roles, one per chord, in standard notation relative to the home key (vi, ii, V, I, ii/III, V/III, subV7/V, related ii ...). Free text is allowed; the function of a chord is Michael's call.",
+      "type": "object",
+      "properties": {
+        "home": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
     }
   }
 }

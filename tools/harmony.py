@@ -101,9 +101,12 @@ QUALITIES = {
     '7alt': (['1', '3', 'b7'], 'altered'),
     '9':    (['1', '3', '5', 'b7', '9'], 'mixolydian'),
     '13':   (['1', '3', 'b7', '13'], 'mixolydian'),
+    '-9':   (['1', 'b3', '5', 'b7', '9'], 'dorian'),
+    'maj13': (['1', '3', '7', '9', '13'], 'ionian'),
+    '7b9':  (['1', '3', '5', 'b7', 'b9'], 'half_whole'),
 }
 ALIASES = {'m7': '-7', 'min7': '-7', 'm6': '-6', 'm': '-', 'dim7': 'o7', 'm7b5': 'ø7', 'h7': 'ø7',
-           'M7': 'maj7', 'Δ7': 'maj7', 'Δ': 'maj7', 'alt': '7alt'}
+           'M7': 'maj7', 'Δ7': 'maj7', 'Δ': 'maj7', 'alt': '7alt', '-7b5': 'ø7', 'dim': 'o7'}
 
 SCALES = {   # intervals from the chord root, in order
     'ionian':        ['1', '2', '3', '4', '5', '6', '7'],
@@ -141,6 +144,7 @@ class Chord:
     numeral: str = ''
     scale: str = ''
     tones: list = field(default_factory=list)       # [(note, interval)]
+    bass: str = ''                                  # slash chords: the bass note ('' = the root)
 
     def scale_tones(self):
         """[(spelled note, interval, role, weight)] for the whole chord-scale. Chord tones keep the chord's
@@ -187,8 +191,19 @@ def numeral_root(numeral, key):
 
 
 def chord(symbol_or_numeral, key=None, scale=None):
-    """A Chord from 'Ab7' (absolute) or from 'bVI7' + key."""
+    """A Chord from 'Ab7' (absolute) or from 'bVI7' + key. Slash chords: 'Ab/C' (bass note), or in numerals
+    'I/3', 'iii-7/b7' (the bass as an interval above the chord's root: key-free)."""
     s = symbol_or_numeral
+    if '/' in s:
+        s, bass = s.split('/', 1)
+        c = chord(s, key, scale)
+        if re.match(r'^(bb|b|##|#)?\d+$', bass):
+            c.bass = spell(c.root, bass)
+        else:
+            c.bass = bass
+        c.symbol = c.symbol + '/' + c.bass
+        c.numeral = symbol_or_numeral if c.numeral else ''
+        return c
     if _NUMERAL.match(s) and not _SYMBOL.match(s):
         if key is None:
             raise ValueError('%r is a Roman numeral: a key is needed' % s)

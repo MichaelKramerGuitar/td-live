@@ -303,6 +303,16 @@ if not has(SG, 'Chart'):
     SG.par.Tempo = 120
     SG.par.Countinbars = 1
     SG.par.Frets = 19
+METERS = [('chart', "Chart's meter"), ('3', '3/4'), ('4', '4/4'), ('5:3+2', '5/4 (3+2)'), ('5:2+3', '5/4 (2+3)'),
+          ('6:3+3', '6/4 (3+3)'), ('7:4+3', '7/4 (4+3)'), ('7:3+4', '7/4 (3+4)'), ('7:2+2+3', '7/4 (2+2+3)'),
+          ('9:2+2+2+3', '9/4 (2+2+2+3)')]
+new_meter = not has(SG, 'Meter')
+if new_meter:
+    page(SG, 'Song').appendMenu('Meter', label='Meter (performance: chords re-fit, accents on the groups)')
+SG.par.Meter.menuNames = [m for m, _ in METERS]
+SG.par.Meter.menuLabels = [l for _, l in METERS]
+if new_meter:
+    SG.par.Meter = 'chart'
 SG.par.Key.menuNames = ['default', 'C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb']
 SG.par.Key.menuLabels = ["Chart's key"] + list(SG.par.Key.menuNames)[1:]
 synced(SG, textDAT, 'engine', 'modules/song/engine.py', 0, 0)
@@ -455,14 +465,14 @@ PANEL_W, MON_H, HEAD_H = 960, 540, 34
 PAD, CAP_H, BTN_H, ROW_GAP, GAP, GROUP_GAP = 12, 15, 34, 6, 6, 22
 FONT, FONT_SIZE = 'Segoe UI', 15
 BG = (0.055, 0.058, 0.07)
-CAP = {'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
+CAP = {'btn_meter': 'METER', 'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
        'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE', 'btn_clickv': 'CLICK',
        'btn_clickevery': 'EVERY', 'btn_ncaption': 'CAPTION', 'btn_nmap': 'HARMONIC MAP', 'btn_nnames': 'NOTE NAMES',
        'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING'}
 GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
         'btn_nnames', 'btn_ndo', 'btn_nphrasing'}
 ROWS = [   # groups of buttons per row
-    [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up'], ['btn_rehearse', 'btn_record']],
+    [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_meter'], ['btn_rehearse', 'btn_record']],
     [['btn_mode', 'btn_me', 'btn_camera', 'btn_format'], ['btn_clickv', 'btn_clicka', 'btn_clickevery']],
     [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
     [['btn_ncaption', 'btn_nmap', 'btn_nnames', 'btn_ndo', 'btn_nphrasing']],     # mode row: Notation
@@ -478,6 +488,7 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_me': ['Negative', 'Outline', 'Tile ↖'], 'btn_camera': ['Off'], 'btn_format': ['16:9'],
     'btn_take': ['Sep 30 · 23:59', 'none'], 'btn_play': ['▶ Play', '■ Stop'],
     'btn_export': ['Export 100%', 'Exported ✓'], 'btn_delete': ['Delete?'],
+    'btn_meter': ['7/4 2+2+3', '9/4 2+2+2+3', '4/4'],
     'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
     'btn_ncaption': ['On', 'Off'], 'btn_nmap': ['On', 'Off'], 'btn_nnames': ['On', 'Off'],
     'btn_ndo': ['Fixed do', 'Movable do'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
@@ -557,7 +568,7 @@ ACTIVE = {
     'btn_nnames': ("op.Visuals.op('notation').par.Names", (0.30, 0.34, 0.50)),
 }
 ARMED = {'btn_record': "op.Show.par.Armed == 'record'", 'btn_rehearse': "op.Show.par.Armed == 'rehearse'"}
-IDLE_ONLY = {'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
+IDLE_ONLY = {'btn_meter', 'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
              'btn_play', 'btn_delete', 'btn_export'}
 BASE, HOVER, EDGE = (0.135, 0.145, 0.175), (0.19, 0.20, 0.24), (0.23, 0.24, 0.29)
 
@@ -663,6 +674,7 @@ LABELS = {
     'btn_play': "'\\u25a0 Stop' if op.Show.op('playback').module.playing() else '\\u25b6 Play'",
     'btn_delete': "'Delete?' if op.Show.op('playback').module.delete_armed() else 'Delete'",
     'btn_export': "op.Show.op('export').module.label()",
+    'btn_meter': "op.Song.op('engine').module.meter_label()",
     'btn_clickv': "'Visual'",
     'btn_clicka': "'Audio'",
     'btn_clickevery': "op.Show.par.Clickevery.eval().capitalize()",

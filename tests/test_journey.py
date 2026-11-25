@@ -45,3 +45,25 @@ def test_tension_dials():
     assert t == 0
     t2, parts2 = j.tension('Db', 'Db', 'A7', depth=2)
     assert parts2['outside'] == 3 and t2 > t        # A, E, G are outside Db major (C# = Db is in)
+
+
+def test_attya_and_betty_spell_as_michael_wrote():
+    import chartlib as cl
+    import formclock as fc
+    for cid, want in (('all_the_things_you_are', 'D-7 G7'), ('along_came_betty', 'B-9 E13')):
+        s = fc.Song(cl.load_chart(os.path.join(cl.ROOT, 'charts', cid + '.yaml')), key='Ab')
+        assert cl.check_chart(s.chart) == []
+        bars = {}
+        for e in s.events:
+            bars.setdefault(e[6], []).append(e[2].symbol)
+        assert ' '.join(bars[6 if cid.startswith('all') else 2]) == want
+
+
+def test_performance_meter_refits_chords():
+    import chartlib as cl
+    import formclock as fc
+    c = cl.load_chart(os.path.join(cl.ROOT, 'charts', 'all_the_things_you_are.yaml'))
+    for meter, split, acc in (('7:4+3', [4, 3], [1, 5]), ('7:3+4', [3, 4], [1, 4]), ('3', [2, 1], [1])):
+        s = fc.Song(c, key='Ab', meter=meter)
+        assert [e[1] for e in s.events if e[6] == 6] == split and s.accents == acc
+        assert s.chorus_beats == 36 * s.beats_per_bar

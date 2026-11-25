@@ -22,6 +22,9 @@ def onOffToOn(panelValue):
     elif name == 'btn_key' and L().state() == 'idle':
         p = op.Song.par.Key
         p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
+    elif name == 'btn_meter' and L().state() == 'idle':
+        p = op.Song.par.Meter
+        p.menuIndex = (p.menuIndex + 1) % len(p.menuNames)
     elif name == 'btn_tempo_down' and L().state() == 'idle':
         op.Song.par.Tempo = max(30, op.Song.par.Tempo.eval() - 2)
     elif name == 'btn_tempo_up' and L().state() == 'idle':

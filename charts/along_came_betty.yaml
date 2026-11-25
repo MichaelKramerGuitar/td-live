@@ -1,0 +1,117 @@
+# Along Came Betty - Benny Golson (1958). Michael's changes and hearing (2026-11-25), written in Ab and stored
+# as Roman numerals. "Deceptively murky." Form: A1 8, A2 8, B 8, A3 10 = 34 bars.
+schema: tdlive-chart/0.2
+id: along_came_betty
+title: Along Came Betty
+composer: Benny Golson
+status: playable
+changes_notation: roman
+default_key: Ab
+tempo: { bpm: 150 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []
+  harmonies: []
+
+form:
+  sections:
+    - { name: A1, shape: 8 }
+    - { name: A2, shape: 8, note: "A1 recapitulated a major third down (E and Ab: same Coltrane cohort)" }
+    - { name: B, shape: 8 }
+    - { name: A3, shape: 10 }
+  order: [A1, A2, B, A3]
+
+changes:
+  A1:
+    - [[ii-9, 4]]                      # Bb-9
+    - [["#ii-9", 2], ["#V13", 2]]      # B-9 E13
+    - [[ii-9, 4]]                      # Bb-9
+    - [["#ii-9", 2], ["#V13", 2]]      # B-9 E13
+    - [["#Imaj13", 4]]                 # Amaj13
+    - [[I13, 4]]                       # Ab13
+    - [[VIImaj13, 4]]                  # Gmaj13
+    - [["#VI13", 4]]                   # F#13
+  A2:
+    - [["#vi-9", 4]]                   # F#-9
+    - [[vii-9, 2], [III7, 2]]          # G-9 C7
+    - [["#vi-9", 4]]                   # F#-9
+    - [[vii-9, 2], [III7, 2]]          # G-9 C7
+    - [[VImaj7, 4]]                    # Fmaj7
+    - [["#Vø7", 2], ["#I7alt", 2]]     # E-7b5 A7alt
+    - [["#ivø7", 4]]                   # D-7b5
+    - [[VII7alt, 4]]                   # G7alt
+  B:
+    - [[iii-7, 4]]                     # C-7
+    - [[iii-7/b7, 4]]                  # C-7/Bb
+    - [["#iø7", 2], ["#IV7alt", 2]]    # A-7b5 D7alt
+    - [[vii-7, 4]]                     # G-7
+    - [["#Vø7", 4]]                    # E-7b5
+    - [["#I7alt", 4]]                  # A7alt
+    - [[vi-7, 4]]                      # F-7
+    - [[II7, 4]]                       # Bb7
+  A3:
+    - [[ii-9, 4]]                      # Bb-9
+    - [["#ii-9", 2], ["#V13", 2]]      # B-9 E13
+    - [[ii-9, 4]]                      # Bb-9
+    - [["#ii-9", 2], ["#V13", 2]]      # B-9 E13
+    - [[iiiø7, 4]]                     # C-7b5
+    - [[VI7b9, 4]]                     # F7b9
+    - [["#iiø7", 4]]                   # B-7b5
+    - [[V7b9, 4]]                      # Eb7b9
+    - [[Imaj7, 4]]                     # Abmaj7
+    - [["#ii-7", 2], ["#V13", 2]]      # B-7 E13 - only if another chorus follows (endings: to do)
+
+analysis:
+  home: I
+  notes:
+    - "Bar 2: B-9 is an upper-neighbour embellishment of Bb-9; E13 ornaments B-9. Rule: as any V can be ii'd,
+      any ii can be V'd."
+    - "A1 travels away from home: Amaj13 (arrival), Ab13 (passing, V of what's to come), Gmaj13 (arrival),
+      F#13 (imperfect cadence, V of B-something)."
+    - "A2 recapitulates A1 a major third down: E and Ab are in the same Coltrane cohort (Ab C E). Murky."
+    - "A2 bars 6-8: iii-vi-ii-V setting up C minor (C-6)."
+    - "B: C-7 arrives, then pivots to iv of G minor. E-7b5 A7alt is ambiguous: we never arrive (in Whisper Not
+      Golson does go to D-7, so maybe ii-V of D). F-7 pivots as ii of Eb; Bb7 = V, pivoting home as A1 -> A2."
+  A1:
+    - [ii]
+    - ["upper neighbour of ii", "V of the neighbour (ii V'd)"]
+    - [ii]
+    - [ii, "V (travelling away from home)"]
+    - [arrival]
+    - ["passing (V of what's to come)"]
+    - [arrival]
+    - ["imperfect cadence (V of B...)"]
+  A2:
+    - [ii/#V]
+    - ["upper neighbour", "V of the neighbour"]
+    - [ii/#V]
+    - ["upper neighbour", "V of the neighbour"]
+    - [arrival]
+    - [iii/iii, vi/iii]
+    - [ii/iii]
+    - [V/iii]
+  B:
+    - [arrival]
+    - ["iv/vii (pivot: C-7 as iv of G minor)"]
+    - [ii/vii, V/vii]
+    - [i/vii]
+    - ["ii/#iv? (ambiguous: never arrives)"]
+    - ["V/#iv?"]
+    - ["ii/V (pivot)"]
+    - [V/V]
+  A3:
+    - [ii]
+    - ["upper neighbour of ii", "V of the neighbour"]
+    - [ii]
+    - ["upper neighbour of ii", "V of the neighbour"]
+    - [iii]
+    - [VI7]
+    - [ii/ii]
+    - [V]
+    - [I]
+    - ["turnaround (B-7 E13)"]

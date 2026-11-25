@@ -1,0 +1,121 @@
+# All The Things You Are - Jerome Kern / Oscar Hammerstein II (1939). Michael's changes and hearing
+# (2026-11-25), written in Ab and stored as Roman numerals. Spellings follow Michael's chart
+# (D-7 G7, A-7 D7, F#-7 B7 Emaj7, Bdim7: letter arithmetic gives #iv-7, #i-7, #vi-7, #Vmaj7, #iio7 in Ab).
+# Form: A1 8, A2 8, B 8, A3 12 = 36 bars. A2 = A1 up a fifth.
+schema: tdlive-chart/0.2
+id: all_the_things_you_are
+title: All The Things You Are
+composer: Jerome Kern
+status: playable
+changes_notation: roman
+default_key: Ab
+tempo: { bpm: 160 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []
+  harmonies: []
+
+form:
+  sections:
+    - { name: A1, shape: 8 }
+    - { name: A2, shape: 8, note: "A1 transposed up a fifth" }
+    - { name: B, shape: 8 }
+    - { name: A3, shape: 12 }
+  order: [A1, A2, B, A3]
+
+changes:
+  A1:
+    - [[vi-7, 4]]                      # F-7
+    - [[ii-7, 4]]                      # Bb-7
+    - [[V7, 4]]                        # Eb7
+    - [[Imaj7, 4]]                     # Abmaj7
+    - [[IVmaj7, 4]]                    # Dbmaj7
+    - [["#iv-7", 2], [VII7, 2]]        # D-7 G7
+    - [[IIImaj7, 4]]                   # Cmaj7
+    - [[IIImaj7, 4]]                   # (Cmaj7)
+  A2:
+    - [[iii-7, 4]]                     # C-7
+    - [[vi-7, 4]]                      # F-7
+    - [[II7, 4]]                       # Bb7
+    - [[Vmaj7, 4]]                     # Ebmaj7
+    - [[Imaj7, 4]]                     # Abmaj7
+    - [["#i-7", 2], ["#IV7", 2]]       # A-7 D7
+    - [[VIImaj7, 4]]                   # Gmaj7
+    - [[VIImaj7, 4]]                   # (Gmaj7)
+  B:
+    - [["#i-7", 4]]                    # A-7
+    - [["#IV7", 4]]                    # D7
+    - [[VIImaj7, 4]]                   # Gmaj7
+    - [[VIImaj7, 4]]                   # (Gmaj7)
+    - [["#vi-7", 4]]                   # F#-7
+    - [["#II7", 4]]                    # B7
+    - [["#Vmaj7", 4]]                  # Emaj7
+    - [[III7alt, 4]]                   # C7alt
+  A3:
+    - [[vi-7, 4]]                      # F-7
+    - [[ii-7, 4]]                      # Bb-7
+    - [[V7, 4]]                        # Eb7
+    - [[Imaj7, 4]]                     # Abmaj7
+    - [[IVmaj7, 4]]                    # Dbmaj7
+    - [[iv-6, 4]]                      # Db-6
+    - [[I/3, 4]]                       # Ab/C
+    - [["#iio7", 4]]                   # Bdim7
+    - [[ii-7, 4]]                      # Bb-7
+    - [[V7, 4]]                        # Eb7
+    - [[Imaj7, 4]]                     # Abmaj7
+    - [[III7alt, 4]]                   # C7alt - only if another chorus follows (endings: to do)
+
+analysis:
+  home: I
+  notes:
+    - "A1 goes to C (III), a member of Ab's Coltrane (major-third) cohort Ab C E."
+    - "A2 is A1 transposed up a fifth: Eb is 'home away from home'; then to G (VII)."
+    - "B: G (VII) as a temporary home. G -> F#-7 is a soft tritone substitution (the root moves by half step
+      though the qualities are not a tritone sub). E (#V) is in G's minor-third cohort (G Bb Db E) AND in Ab's
+      Coltrane cohort (Ab C E): related to the real home. C7alt = V/vi, going back home."
+    - "A3: iv-6 (mode mixture), I6, then the diminished passing chord (Michael: 'biii diminished') to ii."
+  A1:
+    - [vi]
+    - [ii]
+    - [V]
+    - [I]
+    - [IV]
+    - [ii/III, V/III]
+    - [I/III]
+    - [I/III]
+  A2:
+    - [vi/V]
+    - [ii/V]
+    - [V/V]
+    - [I/V]
+    - [IV/V]
+    - [ii/VII, V/VII]
+    - [I/VII]
+    - [I/VII]
+  B:
+    - [ii/VII]
+    - [V/VII]
+    - [I/VII]
+    - [I/VII]
+    - ["ii/#V (soft tritone sub from G)"]
+    - [V/#V]
+    - [I/#V]
+    - [V/vi]
+  A3:
+    - [vi]
+    - [ii]
+    - [V]
+    - [I]
+    - [IV]
+    - [iv6]
+    - [I6]
+    - ["biiio7 (passing to ii)"]
+    - [ii]
+    - [V]
+    - [I]
+    - ["V/vi (turnaround)"]

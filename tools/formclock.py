@@ -35,12 +35,55 @@ class Position:
     chord_index: int          # increments on every chord change (handy for triggers)
 
 
+def parse_meter(meter):
+    """'7:4+3' -> (7, [4, 3]); '6' -> (6, [6]); 'chart' / '' / None -> (None, None)."""
+    if not meter or meter == 'chart':
+        return None, None
+    m = str(meter)
+    beats, _, grp = m.partition(':')
+    beats = int(beats)
+    groups = [int(x) for x in grp.split('+')] if grp else [beats]
+    if sum(groups) != beats:
+        raise ValueError('meter %r: groups add up to %d' % (meter, sum(groups)))
+    return beats, groups
+
+
+def fit_bar(chords, beats, groups):
+    """Re-fit one bar's [(chord, beats)] into a new meter: proportional, chord changes snapped to the nearest
+    group boundary when one is close (2+2 in 7:4+3 -> 4+3; in 7:3+4 -> 3+4), else rounded (earlier wins)."""
+    total = sum(b for _, b in chords)
+    if total == beats or len(chords) == 0:
+        return list(chords)
+    bounds = []
+    acc = 0
+    for g in groups[:-1]:
+        acc += g
+        bounds.append(acc)
+    cuts, pos = [], 0.0
+    for _, b in chords[:-1]:
+        pos += b * beats / total
+        near = [x for x in bounds if abs(x - pos) <= 1.0]
+        cut = min(near, key=lambda x: abs(x - pos)) if near else math.floor(pos + 0.5)
+        cut = max(cut, (cuts[-1] if cuts else 0) + 1)
+        cuts.append(min(cut, beats - (len(chords) - 1 - len(cuts))))
+    edges = [0] + cuts + [beats]
+    return [(chords[i][0], edges[i + 1] - edges[i]) for i in range(len(chords))]
+
+
 class Song:
-    def __init__(self, chart, key=None, bpm=None):
+    def __init__(self, chart, key=None, bpm=None, meter=None):
         self.chart = chart
         self.key = key or chart.get('default_key') or 'C'
         self.bpm = float(bpm or (chart.get('tempo') or {}).get('bpm') or 120)
-        self.beats_per_bar = chart['rhythm']['meter']['beats']
+        chart_beats = chart['rhythm']['meter']['beats']
+        beats, groups = parse_meter(meter)
+        self.beats_per_bar = beats or chart_beats
+        self.groups = groups or [chart_beats]
+        if beats:      # performance meter: accents on the group starts
+            self.accents = [1 + sum(groups[:i]) for i in range(len(groups))]
+        else:
+            self.accents = list(chart['rhythm'].get('accents') or [])
+        self.meter_text = ('%d/4' % self.beats_per_bar) + (' (%s)' % '+'.join(map(str, groups)) if beats and len(groups) > 1 else '')
         changes = h.realize(chart, self.key)
         if not changes:
             raise ValueError('%s has no changes yet (status: %s)' % (chart.get('id'), chart.get('status')))
@@ -52,7 +95,10 @@ class Song:
             sec_bars = changes[section]
             for b in range(nbars):
                 bar += 1
-                for ch, beats in sec_bars[b]:
+                row = sec_bars[b]
+                if self.beats_per_bar != chart_beats:
+                    row = fit_bar(row, self.beats_per_bar, self.groups)
+                for ch, beats in row:
                     self.events.append((beat, float(beats), ch, section, pass_, b + 1, bar))
                     beat += beats
         self.chorus_beats = beat
