@@ -160,4 +160,12 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
 - **2026-11-25 — session 4b.** Endings: chart `endings` (last chorus only), armed hands-free with the End key
   (E / PageDown: Bluetooth page-turner pedals send those) -> the last chord rings a bar, then the take stops.
   Verified live on ATTYA (bar 36 = Abmaj7, then idle). Next: Journey step 2, the "Solar" mode.
+- **2026-11-25 — session 4c.** Journey step 2, first picture: **Harmony Galaxy** mode (Michael renamed it from
+  "Solar", a standard he'll chart). Key stars placed by fifths distance from home in a gravity landscape (home
+  and its cohorts dig valleys, the further out the higher), the local tonic (from Michael's `analysis` roles via
+  `journey.journey_plan`) deepens its valley and carries 7 diatonic planets; secondary chords orbit as moons; a
+  traveller comet with a trail, and a tether home that sags when slack and pulls taut/red with tension. Drawn
+  with the notation shader (layers: grid at half resolution). Mode row now per mode (Galaxy: camera view, grid,
+  tether, key names, caption). Lesson: a Text TOP expression with no changing reference never re-evaluates
+  (add absTime.frame).
 
