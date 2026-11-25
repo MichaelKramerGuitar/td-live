@@ -33,6 +33,8 @@ class Position:
     chord_beats_left: float   # beats until the next chord
     next_chord: object        # harmony.Chord coming next
     chord_index: int          # increments on every chord change (handy for triggers)
+    finished: bool = False    # the last chorus (and its ring-out bar) is over
+    last_chorus: bool = False # this chorus plays the ending
 
 
 def parse_meter(meter):
@@ -87,22 +89,39 @@ class Song:
         changes = h.realize(chart, self.key)
         if not changes:
             raise ValueError('%s has no changes yet (status: %s)' % (chart.get('id'), chart.get('status')))
+        # Endings: bars that change on the last chorus ({section: {bar in section: [[chord, beats], ...]}},
+        # applied to the section's last appearance in the form).
+        endings = {}
+        for sec, bars in (chart.get('endings') or {}).items():
+            fake = dict(chart, changes={sec: [bars[k] for k in sorted(bars)]})
+            spelled = h.realize(fake, self.key)[sec]
+            endings[sec] = {int(k): spelled[i] for i, k in enumerate(sorted(bars))}
+        plan = cl.form_plan(chart)
+        last_pos = {}
+        for i, (section, pass_, nbars) in enumerate(plan):
+            last_pos[section] = i
+
         # Flatten the form into a list of chord events: (start beat, beats, chord, section, pass, bar_in_sec, bar)
-        self.events = []
-        beat = 0.0
-        bar = 0
-        for section, pass_, nbars in cl.form_plan(chart):
-            sec_bars = changes[section]
-            for b in range(nbars):
-                bar += 1
-                row = sec_bars[b]
-                if self.beats_per_bar != chart_beats:
-                    row = fit_bar(row, self.beats_per_bar, self.groups)
-                for ch, beats in row:
-                    self.events.append((beat, float(beats), ch, section, pass_, b + 1, bar))
-                    beat += beats
-        self.chorus_beats = beat
-        self.chorus_bars = bar
+        def flatten(use_endings):
+            events, beat, bar = [], 0.0, 0
+            first_ending_bar = None
+            for i, (section, pass_, nbars) in enumerate(plan):
+                sec_bars = changes[section]
+                for b in range(nbars):
+                    bar += 1
+                    row = sec_bars[b]
+                    if use_endings and i == last_pos[section] and (b + 1) in endings.get(section, {}):
+                        row = endings[section][b + 1]
+                        first_ending_bar = first_ending_bar or bar
+                    if self.beats_per_bar != chart_beats:
+                        row = fit_bar(row, self.beats_per_bar, self.groups)
+                    for ch, beats in row:
+                        events.append((beat, float(beats), ch, section, pass_, b + 1, bar))
+                        beat += beats
+            return events, beat, bar, first_ending_bar
+        self.events, self.chorus_beats, self.chorus_bars, _ = flatten(False)
+        self.end_events, _, _, fe = flatten(True)
+        self.ending_bar = fe or self.chorus_bars          # arm the ending before this bar to end this chorus
         # Sections as played, for "where are we in the form": [(first bar, bars, section name), ...]
         self.spans = []
         start = 1
@@ -136,7 +155,9 @@ class Song:
     def count_in_seconds(self, bars=1):
         return bars * self.beats_per_bar * self.sec_per_beat
 
-    def at(self, seconds):
+    def at(self, seconds, last=None, ring_bars=1):
+        """Where are we. `last` = the chorus that plays the endings (None = loop forever); after it, the final
+        chord rings for `ring_bars` bars and then Position.finished is True."""
         beats_total = seconds / self.sec_per_beat
         if beats_total < 0:
             first = self.events[0]
@@ -144,16 +165,26 @@ class Song:
                             None, -beats_total, first[2], -1)
         chorus = int(beats_total // self.chorus_beats)
         b = beats_total - chorus * self.chorus_beats
+        events = self.events
+        if last is not None and chorus + 1 > last:            # past the end: ring the final chord, then finish
+            over = beats_total - last * self.chorus_beats
+            ev = self.end_events[-1]
+            in_bar = min(over, self.beats_per_bar - 1e-6)
+            return Position(False, 0, last, ev[3], ev[4], ev[5], ev[6], int(in_bar) + 1, in_bar % 1.0,
+                            in_bar / self.beats_per_bar, ev[2], 0.0, ev[2], last * len(self.events),
+                            finished=over >= ring_bars * self.beats_per_bar, last_chorus=True)
+        if last is not None and chorus + 1 == last:
+            events = self.end_events
         # find the event containing b (events are few; linear is fine and clear)
         idx = 0
-        for i, ev in enumerate(self.events):
+        for i, ev in enumerate(events):
             if ev[0] <= b:
                 idx = i
             else:
                 break
-        start, dur, ch, section, pass_, bis, bar = self.events[idx]
-        nxt = self.events[(idx + 1) % len(self.events)][2]
+        start, dur, ch, section, pass_, bis, bar = events[idx]
+        nxt = events[(idx + 1) % len(events)][2]
         in_bar = b - (bar - 1) * self.beats_per_bar
         return Position(False, 0, chorus + 1, section, pass_, bis, bar, int(in_bar) + 1, in_bar % 1.0,
                         in_bar / self.beats_per_bar, ch, start + dur - b, nxt,
-                        chorus * len(self.events) + idx)
+                        chorus * len(self.events) + idx, last_chorus=(last is not None and chorus + 1 == last))

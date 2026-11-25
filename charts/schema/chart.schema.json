@@ -23,6 +23,32 @@
       "type": "string",
       "pattern": "^(bb|b|##|#)?[1-7]$",
       "description": "Scale degree of the key, spelled: '5', '#3', 'b7'."
+    },
+    "bar": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "properties": {
+            "scale": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
     }
   },
   "properties": {
@@ -278,30 +304,7 @@
       "additionalProperties": {
         "type": "array",
         "items": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "prefixItems": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number",
-                "exclusiveMinimum": 0
-              }
-            ],
-            "minItems": 2,
-            "maxItems": 3,
-            "items": {
-              "type": "object",
-              "properties": {
-                "scale": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          }
+          "$ref": "#/$defs/bar"
         }
       }
     },
@@ -368,6 +371,16 @@
               "null"
             ]
           }
+        }
+      }
+    },
+    "endings": {
+      "description": "Bars that change on the LAST chorus (the turnaround becomes the ending), per section, keyed by bar number within the section, applied to the section's last appearance in the form. Armed live with the End key / pedal: the tune finishes at the end of that chorus.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/$defs/bar"
         }
       }
     }

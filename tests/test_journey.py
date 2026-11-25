@@ -67,3 +67,16 @@ def test_performance_meter_refits_chords():
         s = fc.Song(c, key='Ab', meter=meter)
         assert [e[1] for e in s.events if e[6] == 6] == split and s.accents == acc
         assert s.chorus_beats == 36 * s.beats_per_bar
+
+
+def test_endings_last_chorus():
+    import chartlib as cl
+    import formclock as fc
+    s = fc.Song(cl.load_chart(os.path.join(cl.ROOT, 'charts', 'all_the_things_you_are.yaml')), key='Ab', bpm=60)
+    bar36 = 35 * 4 + 0.5                                       # seconds at 60 bpm = beats
+    assert s.at(bar36).chord.symbol == 'C7alt'                 # looping: the turnaround
+    assert s.at(bar36, last=1).chord.symbol == 'Abmaj7'        # last chorus: the ending
+    assert s.ending_bar == 36
+    assert not s.at(36 * 4 + 1, last=1).finished               # ringing the final chord
+    assert s.at(36 * 4 + 1, last=1).chord.symbol == 'Abmaj7'
+    assert s.at(37 * 4 + 0.1, last=1).finished

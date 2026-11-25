@@ -137,6 +137,9 @@ def tick():
         st = 'running'
     t_rel = None if st == 'idle' else now - s.fetch('t_go', now)     # seconds since bar 1 (negative = count-in)
     p = E().update(t_rel)
+    if st == 'running' and p is not None and getattr(p, 'finished', False):    # the ending has rung out
+        stop()
+        st = 'idle'
     song = E().describe() if E().active() else ''
     if st == 'countdown':
         left = s.fetch('t_go', now) - now
@@ -147,6 +150,9 @@ def tick():
         small = ('\u25cf REC  ' if k == 'record' else 'REHEARSE  ') + _clock(t)
         if p is not None and not p.counting_in:
             small += '   %s  |  chorus %d  bar %d  |  %s' % (song, p.chorus, p.bar, p.chord.symbol)
+        end = E().ending_text() if hasattr(E(), 'ending_text') else ''
+        if end:
+            small += '   |   ' + end
     if st == 'idle':
         small = 'Space: start %s' % s.par.Armed.eval() + ('   |   ' + song if song else '')
         pb = PB().tick()

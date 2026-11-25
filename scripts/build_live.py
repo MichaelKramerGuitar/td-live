@@ -366,8 +366,13 @@ acts.par.valuechange = False
 tick = synced(SH, executeDAT, 'tick', 'modules/show/tick.py', 0, -300)
 tick.par.framestart = True
 tick.par.start = True                                   # onStart: open the TDlive window
+if not has(SH, 'Endkeys'):
+    pg = page(SH, 'Keys')
+    pg.appendStr('Endkeys', label='End Keys (play the ending; a pedal sending one of these works too)')
+    SH.par.Endkeys = 'e pagedown'
 kb = ensure(SH, keyboardinCHOP, 'keyboard', 200, -450)
-kb.par.keys = 'space esc r h'
+kb.par.keys.expr = "'space esc r h ' + parent().par.Endkeys"
+kb.par.keys.mode = ParMode.EXPRESSION
 keys = synced(SH, chopexecuteDAT, 'keys', 'modules/show/keys.py', 400, -450)
 keys.par.chop = kb.path
 keys.par.offtoon = True

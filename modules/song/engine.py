@@ -92,13 +92,16 @@ def update(seconds):
                 'chorus': 0, 'chord_index': -1, 'tick': 1, 'downbeat': 0, 'active': 0, 'beats_left': 0,
                 'clickon': 0, 'accent': 0}
         _CLICK.update(on=0, accent=0, big='', info='')
+        _CACHE['last'] = None                          # the ending is per performance
+        _CACHE['pos'] = None
         _set_clock(clock, vals)
         _set_now(now, {'chart': describe(), 'state': 'idle'})
         if s is not None and _CACHE['chord_index'] != 'idle':      # show the first chord while idle
             _CACHE['chord_index'] = 'idle'
             _write_chord(s.events[0][2])
         return None
-    p = s.at(seconds)
+    p = s.at(seconds, last=_CACHE.get('last'))
+    _CACHE['pos'] = p
     # Click timing, continuous through the count-in: tick = 0..1 since the last beat; downbeat = beat 1 of a bar.
     beats = seconds / s.sec_per_beat
     tick = beats - math.floor(beats)
@@ -201,3 +204,27 @@ def meter_label():
     if s is None:
         return op.Song.par.Meter.eval()
     return s.meter_text.replace(' (', ' ').replace(')', '')
+
+
+# ---------------------------------------------------------------- endings (End key / pedal)
+def arm_ending():
+    """Make this the last chorus (or the next one, if this chorus's ending bars have already started).
+    Press again to cancel. The chart's `endings` replace the turnaround; the final chord rings a bar, then the
+    take / rehearsal stops by itself."""
+    s, p = song(), _CACHE.get('pos')
+    if s is None or p is None:
+        return
+    if _CACHE.get('last') is not None:
+        _CACHE['last'] = None
+        return
+    chorus = max(1, p.chorus)
+    _CACHE['last'] = chorus if (p.counting_in or p.bar < s.ending_bar) else chorus + 1
+
+
+def ending_text():
+    last, p = _CACHE.get('last'), _CACHE.get('pos')
+    if last is None or p is None:
+        return ''
+    if p.counting_in or p.chorus == last:
+        return 'ENDING: last chorus'
+    return 'ENDING after the next chorus'

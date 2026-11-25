@@ -64,7 +64,11 @@ changes:
     - [["#iiø7", 4]]                   # B-7b5
     - [[V7b9, 4]]                      # Eb7b9
     - [[Imaj7, 4]]                     # Abmaj7
-    - [["#ii-7", 2], ["#V13", 2]]      # B-7 E13 - only if another chorus follows (endings: to do)
+    - [["#ii-7", 2], ["#V13", 2]]      # B-7 E13 - the turnaround (the last chorus plays `endings`)
+
+endings:                               # last chorus (End key / pedal)
+  A3:
+    10: [[Imaj7, 4]]                   # Abmaj7
 
 analysis:
   home: I
