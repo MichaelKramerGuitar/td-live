@@ -50,6 +50,15 @@ melody:                                      # degrees of the key (key-free, lik
 
 A group is a number of bars or a list of sub-groups; groups must add up to the section's bars.
 
+```yaml
+endings:                 # the last chorus only (armed live with the End key / pedal)
+  A3:
+    12: [[Imaj7, 4]]     # bar 12 of A3: the turnaround (C7alt) becomes the final Abmaj7
+analysis:                # Michael's hearing, one role per chord (the Journey modes read it)
+  home: I
+  A1: [[vi], [ii], [V], [I], [IV], [ii/III, V/III], [I/III], [I/III]]
+```
+
 ## Key-free charts (Roman numerals)
 
 A chart with `changes_notation: roman` writes its changes relative to the key (`I7`, `ii-7`, `#IVo7`, `bVI7`),

@@ -157,4 +157,7 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   and plagal families spelled toward their targets, related ii, tension dials). Charts: All The Things You Are,
   Along Came Betty (Michael's changes, his hearing in `analysis`). Harmony: slash chords (`I/3`), -9, maj13, 7b9.
   Performance meter (Song › Meter, METER button). Too-wide rows shorten the chart title.
+- **2026-11-25 — session 4b.** Endings: chart `endings` (last chorus only), armed hands-free with the End key
+  (E / PageDown: Bluetooth page-turner pedals send those) -> the last chord rings a bar, then the take stops.
+  Verified live on ATTYA (bar 36 = Abmaj7, then idle). Next: Journey step 2, the "Solar" mode.
 

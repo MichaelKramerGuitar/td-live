@@ -9,7 +9,10 @@
 3. **Rehearse**: countdown, then live, no file. **● Record**: countdown, then a take in `Takes/`.
    Click the same button again (it reads **Stop**) or press **Space** to stop.
 4. **Space** starts whatever is armed (the hint in the top-left corner says which) and stops anything running.
-   **R** arms Record, **H** arms reHearse, **Esc** stops. Keys work while a TouchDesigner window has focus;
+   **R** arms Record, **H** arms reHearse, **Esc** stops. **E** or **PageDown** (or a Bluetooth page-turner
+   pedal, which sends PageDown/arrow keys) plays the **ending**: this chorus becomes the last, the chart's
+   `endings` replace the turnaround, the last chord rings a bar and the take stops itself (again = cancel; the
+   header shows `ENDING`). Change the keys on `show` › Keys › End Keys. Keys work while a TouchDesigner window has focus;
    use the TDlive window, because in the network editor Space also plays/pauses the timeline.
 5. The TDlive window: a **header** (what's happening: armed / count-in / REC time, chart, bar, chord; export
    progress on the right), the **preview**, then three rows of controls (captioned ones show just their value):
@@ -112,7 +115,7 @@ swappable (same idea as td-experiment's bus).
 | `logic.py` | `show/logic` | the state machine: idle → countdown → running; names takes; overlay text; Status |
 | `actions.py` | `show/actions` | parameter pulses → logic |
 | `tick.py` | `show/tick` | once per frame → `logic.tick()` |
-| `keys.py` | `show/keys` | Space / Esc / R / H → logic |
+| `keys.py` | `show/keys` | Space / Esc / R / H / End keys → logic, song engine |
 | `buttons.py` | `show/buttons` | TDlive window buttons → logic |
 
 These DATs are synced to the files: edit in VS Code and TouchDesigner re-reads them. `modules/song/` works the
