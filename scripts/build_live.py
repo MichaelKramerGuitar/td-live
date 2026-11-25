@@ -583,6 +583,7 @@ def natural(bn):
     return max(36, w)
 
 BUTTONS = []
+CHART_CHARS = [40]                                      # how many characters of the chart title fit
 for r, groups in enumerate(ROWS):
     names = [b for g in groups for b in g]
     widths = {b: natural(b) for b in names}
@@ -593,6 +594,9 @@ for r, groups in enumerate(ROWS):
         tot = sum(widths[b] for b in growers)
         for b in growers:
             widths[b] += int(spare * widths[b] / tot)
+    elif spare < 0 and 'btn_chart' in widths:        # too wide: the chart title gives way (it shortens with ...)
+        widths['btn_chart'] = max(120, widths['btn_chart'] + spare)
+    CHART_CHARS[0] = max(8, int((widths.get('btn_chart', 0) - 26) / (FONT_SIZE * 0.52))) if 'btn_chart' in widths else CHART_CHARS[0]
     y = CTRL_H - PAD - (r + 1) * (CAP_H + BTN_H) - r * ROW_GAP        # bottom of this row's buttons
     x = PAD
     for gi, g in enumerate(groups):
@@ -661,7 +665,8 @@ for r, groups in enumerate(ROWS):
 LABELS = {
     'btn_rehearse': "'\\u25a0 Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'rehearse' else 'Rehearse'",
     'btn_record': "'\\u25a0 Stop' if op.Show.op('logic').module.state() != 'idle' and op.Show.op('logic').module.kind() == 'record' else '\\u25cf Record'",
-    'btn_chart': "op.Song.par.Chart.menuLabels[op.Song.par.Chart.menuIndex]",
+    'btn_chart': ("(lambda t: t if len(t) <= %d else t[:%d].rstrip() + '\\u2026')"
+                  "(op.Song.par.Chart.menuLabels[op.Song.par.Chart.menuIndex])" % (CHART_CHARS[0], CHART_CHARS[0] - 1)),
     'btn_key': "(op.Song.op('engine').module.song().key + ' (chart)' if op.Song.par.Key == 'default' and op.Song.op('engine').module.song() else op.Song.par.Key.eval())",
     'btn_tempo_down': "'\\u2212'",
     'btn_tempo': "'%d bpm' % round(op.Song.par.Tempo.eval())",
