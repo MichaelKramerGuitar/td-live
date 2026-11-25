@@ -507,7 +507,7 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
     'btn_ncaption': ['On', 'Off'], 'btn_nmap': ['On', 'Off'], 'btn_nnames': ['On', 'Off'],
     'btn_ndo': ['Fixed do', 'Movable do'],
-    'btn_gview': ['Follow the traveller', 'From above'], 'btn_ggrid': ['On', 'Off'], 'btn_gtether': ['On', 'Off'],
+    'btn_gview': ['Follow the traveller', 'From above', 'Body cam'], 'btn_ggrid': ['On', 'Off'], 'btn_gtether': ['On', 'Off'],
     'btn_gnames': ['On', 'Off'], 'btn_gcaption': ['On', 'Off'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
 }
 CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
@@ -713,7 +713,7 @@ LABELS = {
     'btn_nnames': "'On' if op.Visuals.op('notation').par.Names else 'Off'",
     'btn_ndo': "'Movable do' if op.Visuals.op('notation').par.Do == 'movable' else 'Fixed do'",
     'btn_nphrasing': "op.Visuals.op('notation').op('prims_callbacks').module.phrasing_label()",
-    'btn_gview': "'Follow the traveller' if op.Visuals.op('galaxy').par.View == 'follow' else 'From above'",
+    'btn_gview': "{'bodycam': 'Body cam', 'follow': 'Follow the traveller', 'overview': 'From above'}.get(op.Visuals.op('galaxy').par.View.eval(), '?')",
     'btn_ggrid': "'On' if op.Visuals.op('galaxy').par.Grid else 'Off'",
     'btn_gtether': "'On' if op.Visuals.op('galaxy').par.Tether else 'Off'",
     'btn_gnames': "'On' if op.Visuals.op('galaxy').par.Names else 'Off'",

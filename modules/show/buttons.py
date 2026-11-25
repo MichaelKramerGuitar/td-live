@@ -64,7 +64,8 @@ def onOffToOn(panelValue):
         par.val = not par.eval()
     elif name == 'btn_gview':
         G = op.Visuals.op('galaxy')
-        G.par.View = 'overview' if G.par.View == 'follow' else 'follow'
+        names = list(G.par.View.menuNames)
+        G.par.View = names[(names.index(G.par.View.eval()) + 1) % len(names)]
     elif name == 'btn_ndo':
         N = op.Visuals.op('notation')
         N.par.Do = 'fixed' if N.par.Do == 'movable' else 'movable'

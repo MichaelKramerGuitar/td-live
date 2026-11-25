@@ -8,8 +8,6 @@ G = ensure(V, baseCOMP, 'galaxy', 0, -800)
 if not has(G, 'View'):
     pg = page(G, 'Galaxy')
     pg.appendMenu('View', label='Camera')
-    G.par.View.menuNames = ['follow', 'overview']
-    G.par.View.menuLabels = ['Follow the traveller', 'From above']
     pg.appendFloat('Tilt', label='Camera Tilt (degrees above the plane)')
     pg.appendFloat('Spin', label='Camera Spin (degrees)')
     pg.appendToggle('Drift', label='Slow Drift Around')
@@ -26,6 +24,14 @@ if not has(G, 'View'):
                  ('Glow', 0.35), ('Glowreach', 0.02)):
         G.par[k] = v
         G.par[k].default = v
+
+G.par.View.menuNames = ['bodycam', 'follow', 'overview']
+G.par.View.menuLabels = ['Body cam (riding with the traveller)', 'Follow the traveller', 'From above']
+if not has(G, 'Bodycamfov'):
+    page(G, 'Galaxy').appendFloat('Bodycamfov', label='Body Cam Field Of View (degrees)')
+    G.par.Bodycamfov = 62.0
+    G.par.Bodycamfov.default = 62.0
+    G.par.View = 'bodycam'
 
 cb = synced(G, textDAT, 'world_callbacks', 'modules/galaxy/world.py', -200, -100)
 pr = ensure(G, scriptTOP, 'prims', 0, 0)

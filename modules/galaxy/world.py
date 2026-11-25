@@ -102,11 +102,13 @@ def height(x, z, W):
 
 
 class Camera:
-    """Look-at perspective camera -> figure coordinates (short side of the frame = -1..1)."""
-    def __init__(self, target, dist, pitch, yaw, fov=38.0):
+    """Look-at perspective camera -> figure coordinates (short side of the frame = -1..1).
+    Either orbit a target (dist, pitch, yaw) or give the eye position directly (eye=...)."""
+    def __init__(self, target, dist=1.0, pitch=0.6, yaw=0.0, fov=38.0, eye=None):
         self.t = target
         cp, sp = math.cos(pitch), math.sin(pitch)
-        self.eye = (target[0] + dist * cp * math.sin(yaw), target[1] + dist * sp, target[2] + dist * cp * math.cos(yaw))
+        self.eye = eye or (target[0] + dist * cp * math.sin(yaw), target[1] + dist * sp,
+                           target[2] + dist * cp * math.cos(yaw))
         f = [target[i] - self.eye[i] for i in range(3)]
         n = math.sqrt(sum(v * v for v in f))
         self.f = [v / n for v in f]
@@ -223,14 +225,44 @@ def onCook(scriptOp):
     _MEM['trail'].append(c)
     _MEM['trail'] = _MEM['trail'][-int(max(4, L.par.Trail.eval() * 30)):]
 
-    # camera: follow the comet, or watch from above
-    follow = L.par.View.eval() == 'follow'
-    tgt = (c[0] * 0.6, 0.0, c[2] * 0.6) if follow else (0.0, 0.0, 0.0)
-    if _MEM['cam'] is None:
-        _MEM['cam'] = tgt
-    _MEM['cam'] = tuple(_MEM['cam'][i] + (tgt[i] - _MEM['cam'][i]) * 0.04 for i in range(3))
-    cam = Camera(_MEM['cam'], 1.7 if follow else 2.6, math.radians(L.par.Tilt.eval()),
-                 math.radians(L.par.Spin.eval()) + (t * 0.02 if L.par.Drift.eval() else 0.0))
+    # camera: body cam (riding just behind the traveller, looking where it's heading), follow, or from above
+    view = L.par.View.eval()
+    if view == 'bodycam':
+        # heading = the smoothed direction of travel (kept when the traveller pauses); fall back: toward the
+        # chord it's heading for, then: away from home
+        prev = _MEM['trail'][-6] if len(_MEM['trail']) > 6 else c
+        v = (c[0] - prev[0], c[2] - prev[2])
+        n = math.hypot(*v)
+        if n < 1e-3:
+            v = (target[0] - c[0], target[2] - c[2])
+            n = math.hypot(*v)
+        if n < 1e-3:
+            v, n = (c[0] or 0.001, c[2] or 0.001), math.hypot(c[0] or 0.001, c[2] or 0.001)
+        hd = _MEM.get('heading') or (v[0] / n, v[1] / n)
+        hd = (hd[0] + (v[0] / n - hd[0]) * 0.03, hd[1] + (v[1] / n - hd[1]) * 0.03)
+        hn = math.hypot(*hd) or 1.0
+        hd = (hd[0] / hn, hd[1] / hn)
+        _MEM['heading'] = hd
+        back, up, ahead = 0.16, 0.055 + 0.01 * math.sin(t * 1.3), 0.35
+        ex_, ez_ = c[0] - hd[0] * back, c[2] - hd[1] * back
+        eye = (ex_, max(height(ex_, ez_, W) + 0.03, c[1] + up), ez_)
+        look = (c[0] + hd[0] * ahead, c[1] - 0.02, c[2] + hd[1] * ahead)
+        if _MEM.get('bc') is None:
+            _MEM['bc'] = (eye, look)
+        e0, l0 = _MEM['bc']
+        eye = tuple(e0[i] + (eye[i] - e0[i]) * 0.15 for i in range(3))
+        look = tuple(l0[i] + (look[i] - l0[i]) * 0.15 for i in range(3))
+        _MEM['bc'] = (eye, look)
+        cam = Camera(look, eye=eye, fov=L.par.Bodycamfov.eval())
+    else:
+        _MEM['bc'] = None
+        follow = view == 'follow'
+        tgt = (c[0] * 0.6, 0.0, c[2] * 0.6) if follow else (0.0, 0.0, 0.0)
+        if _MEM['cam'] is None:
+            _MEM['cam'] = tgt
+        _MEM['cam'] = tuple(_MEM['cam'][i] + (tgt[i] - _MEM['cam'][i]) * 0.04 for i in range(3))
+        cam = Camera(_MEM['cam'], 1.7 if follow else 2.6, math.radians(L.par.Tilt.eval()),
+                     math.radians(L.par.Spin.eval()) + (t * 0.02 if L.par.Drift.eval() else 0.0))
 
     # ---- gravity grid (layer 1)
     if L.par.Grid.eval():
