@@ -172,4 +172,11 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   rides just behind and above the traveller, looking along its smoothed heading, wide lens (Body Cam Field Of
   View, 62). Camera View now cycles Body cam / Follow / From above; body cam is the default. Rigid attachment
   (only the heading smoothed) keeps the traveller in the lower middle; sizes capped up close.
+- **2026-11-25 — session 4e.** Galaxy performance: the grid was ~1,100 segments that every pixel of BOTH passes
+  looped over. Now each layer has its own rows in the primitive texture (draw.frag: uLayer picks rows 3*layer..),
+  the grid is built with numpy (13 x 26), depth-faded, drawn at 0.25 resolution (Gridres). Measured with grid
+  on: 30 fps; GPU ~6 ms grid + ~10 ms bodies; Script TOP ~5 ms. Lesson: the per-pixel primitive loop costs
+  (pixels x primitives) - keep lists short per pass; GPU instanced quads would be the next step if needed.
+  Protagonist: comet or **melody whisp** (pitch follower -> palette-coloured puffs born at the traveller, higher
+  for higher notes, joined in order, left behind as a wake).
 
