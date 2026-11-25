@@ -80,3 +80,20 @@ def test_endings_last_chorus():
     assert not s.at(36 * 4 + 1, last=1).finished               # ringing the final chord
     assert s.at(36 * 4 + 1, last=1).chord.symbol == 'Abmaj7'
     assert s.at(37 * 4 + 0.1, last=1).finished
+
+
+def test_journey_plan_reads_michaels_roles():
+    import chartlib as cl
+    import formclock as fc
+    s = fc.Song(cl.load_chart(os.path.join(cl.ROOT, 'charts', 'all_the_things_you_are.yaml')), key='Ab')
+    plan = j.journey_plan(s)
+    by_bar = {}
+    for ev, p in zip(s.events, plan):
+        by_bar.setdefault(ev[6], []).append(p['local'])
+    assert by_bar[1] == ['Ab'] and by_bar[6] == ['C', 'C'] and by_bar[7] == ['C']
+    assert by_bar[14] == ['G', 'G'] and by_bar[23] == ['E'] and by_bar[25] == ['Ab']
+    b = fc.Song(cl.load_chart(os.path.join(cl.ROOT, 'charts', 'along_came_betty.yaml')), key='Ab')
+    bp = {}
+    for ev, p in zip(b.events, j.journey_plan(b)):
+        bp.setdefault(ev[6], []).append(p['local'])
+    assert bp[5] == ['A'] and bp[9] == ['E']        # Amaj13 arrives; A2 is about E (ii/#V)

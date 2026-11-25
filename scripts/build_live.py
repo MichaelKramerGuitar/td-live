@@ -350,7 +350,7 @@ if not has(SH, 'Mode'):
     SH.par.Countdown = 4
     SH.par.Camerainshot = True
 MODES = [('mirror', 'Mirror (camera)'), ('ripples', 'Ripples'), ('landscape', 'Fretboard Landscape'),
-         ('notation', 'Notation (three circles)')]
+         ('notation', 'Notation (three circles)'), ('galaxy', 'Harmony Galaxy')]
 SH.par.Mode.menuNames = [m for m, _ in MODES]
 SH.par.Mode.menuLabels = [l for _, l in MODES]
 SH.par.Mode.readOnly = False
@@ -381,6 +381,7 @@ keys.par.ontooff = keys.par.whileon = keys.par.whileoff = keys.par.valuechange =
 # ---------------------------------------------------------------- mode: fretboard landscape
 exec(open(project.folder + '/scripts/build_landscape.py', encoding='utf-8').read(), globals())
 exec(open(project.folder + '/scripts/build_notation.py', encoding='utf-8').read(), globals())   # three circles
+exec(open(project.folder + '/scripts/build_galaxy.py', encoding='utf-8').read(), globals())     # harmony galaxy
 REPORT['landscape'] = landscape_report
 
 # ---------------------------------------------------------------- output
@@ -473,17 +474,26 @@ BG = (0.055, 0.058, 0.07)
 CAP = {'btn_meter': 'METER', 'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
        'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE', 'btn_clickv': 'CLICK',
        'btn_clickevery': 'EVERY', 'btn_ncaption': 'CAPTION', 'btn_nmap': 'HARMONIC MAP', 'btn_nnames': 'NOTE NAMES',
-       'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING'}
-GROW = {'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
+       'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING', 'btn_gview': 'CAMERA VIEW', 'btn_ggrid': 'GRAVITY GRID',
+       'btn_gtether': 'TETHER HOME', 'btn_gnames': 'KEY NAMES', 'btn_gcaption': 'CAPTION'}
+GROW = {'btn_gview', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption', 'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
         'btn_nnames', 'btn_ndo', 'btn_nphrasing'}
 ROWS = [   # groups of buttons per row
     [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_meter'], ['btn_rehearse', 'btn_record']],
     [['btn_mode', 'btn_me', 'btn_camera', 'btn_format'], ['btn_clickv', 'btn_clicka', 'btn_clickevery']],
     [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
-    [['btn_ncaption', 'btn_nmap', 'btn_nnames', 'btn_ndo', 'btn_nphrasing']],     # mode row: Notation
+    {   # the mode row: each mode lays out its own controls in the same place
+        'notation': [['btn_ncaption', 'btn_nmap', 'btn_nnames', 'btn_ndo', 'btn_nphrasing']],
+        'galaxy': [['btn_gview', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption']],
+    },
 ]
-MODE_ONLY = {'btn_ncaption': 'notation', 'btn_nmap': 'notation', 'btn_nnames': 'notation', 'btn_ndo': 'notation',
-             'btn_nphrasing': 'notation'}
+MODE_ONLY = {}
+for _row in ROWS:
+    if isinstance(_row, dict):
+        for _mode, _groups in _row.items():
+            for _g in _groups:
+                for _b in _g:
+                    MODE_ONLY[_b] = _mode
 WIDEST = {   # the widest text each button can show (sets its width)
     'btn_chart': list(op.Song.par.Chart.menuLabels) or ['no chart'],
     'btn_key': ['Gb (chart)', 'C#'],
@@ -496,7 +506,9 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_meter': ['7/4 2+2+3', '9/4 2+2+2+3', '4/4'],
     'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
     'btn_ncaption': ['On', 'Off'], 'btn_nmap': ['On', 'Off'], 'btn_nnames': ['On', 'Off'],
-    'btn_ndo': ['Fixed do', 'Movable do'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
+    'btn_ndo': ['Fixed do', 'Movable do'],
+    'btn_gview': ['Follow the traveller', 'From above'], 'btn_ggrid': ['On', 'Off'], 'btn_gtether': ['On', 'Off'],
+    'btn_gnames': ['On', 'Off'], 'btn_gcaption': ['On', 'Off'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
 }
 CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
 pn = ensure(SH, containerCOMP, 'panel', 200, 0)
@@ -571,6 +583,10 @@ ACTIVE = {
     'btn_ncaption': ("op.Visuals.op('notation').par.Labels", (0.30, 0.34, 0.50)),
     'btn_nmap': ("op.Visuals.op('notation').par.Allchords", (0.30, 0.34, 0.50)),
     'btn_nnames': ("op.Visuals.op('notation').par.Names", (0.30, 0.34, 0.50)),
+    'btn_ggrid': ("op.Visuals.op('galaxy').par.Grid", (0.30, 0.34, 0.50)),
+    'btn_gtether': ("op.Visuals.op('galaxy').par.Tether", (0.30, 0.34, 0.50)),
+    'btn_gnames': ("op.Visuals.op('galaxy').par.Names", (0.30, 0.34, 0.50)),
+    'btn_gcaption': ("op.Visuals.op('galaxy').par.Labels", (0.30, 0.34, 0.50)),
 }
 ARMED = {'btn_record': "op.Show.par.Armed == 'record'", 'btn_rehearse': "op.Show.par.Armed == 'rehearse'"}
 IDLE_ONLY = {'btn_meter', 'btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_format', 'btn_take',
@@ -589,7 +605,11 @@ def natural(bn):
 
 BUTTONS = []
 CHART_CHARS = [40]                                      # how many characters of the chart title fit
-for r, groups in enumerate(ROWS):
+JOBS = []
+for r, row in enumerate(ROWS):
+    for groups in (row.values() if isinstance(row, dict) else [row]):
+        JOBS.append((r, groups))
+for r, groups in JOBS:
     names = [b for g in groups for b in g]
     widths = {b: natural(b) for b in names}
     used = sum(widths.values()) + sum(GAP * (len(g) - 1) for g in groups) + GROUP_GAP * (len(groups) - 1)
@@ -693,6 +713,11 @@ LABELS = {
     'btn_nnames': "'On' if op.Visuals.op('notation').par.Names else 'Off'",
     'btn_ndo': "'Movable do' if op.Visuals.op('notation').par.Do == 'movable' else 'Fixed do'",
     'btn_nphrasing': "op.Visuals.op('notation').op('prims_callbacks').module.phrasing_label()",
+    'btn_gview': "'Follow the traveller' if op.Visuals.op('galaxy').par.View == 'follow' else 'From above'",
+    'btn_ggrid': "'On' if op.Visuals.op('galaxy').par.Grid else 'Off'",
+    'btn_gtether': "'On' if op.Visuals.op('galaxy').par.Tether else 'Off'",
+    'btn_gnames': "'On' if op.Visuals.op('galaxy').par.Names else 'Off'",
+    'btn_gcaption': "'On' if op.Visuals.op('galaxy').par.Labels else 'Off'",
 }
 for bn, ex in LABELS.items():
     pn.op(bn).op('label').par.text.expr = ex

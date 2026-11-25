@@ -57,6 +57,14 @@ def onOffToOn(panelValue):
         N = op.Visuals.op('notation')
         par = {'btn_ncaption': N.par.Labels, 'btn_nmap': N.par.Allchords, 'btn_nnames': N.par.Names}[name]
         par.val = not par.eval()
+    elif name in ('btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption'):     # Harmony Galaxy toggles
+        G = op.Visuals.op('galaxy')
+        par = {'btn_ggrid': G.par.Grid, 'btn_gtether': G.par.Tether, 'btn_gnames': G.par.Names,
+               'btn_gcaption': G.par.Labels}[name]
+        par.val = not par.eval()
+    elif name == 'btn_gview':
+        G = op.Visuals.op('galaxy')
+        G.par.View = 'overview' if G.par.View == 'follow' else 'follow'
     elif name == 'btn_ndo':
         N = op.Visuals.op('notation')
         N.par.Do = 'fixed' if N.par.Do == 'movable' else 'movable'

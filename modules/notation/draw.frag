@@ -3,9 +3,10 @@
 //   row 0: type, ax, ay, bx     type 0 = line a->b, 1 = ring (centre a, radius bx), 2 = disc (centre a, radius bx),
 //                               < 0 = end of list
 //   row 1: by, half width, glow, alpha
-//   row 2: r, g, b, -
+//   row 2: r, g, b, layer (draw only primitives whose layer = uLayer: lets one list feed several passes)
 // Coordinates: the short side of the frame spans -1..1 (the figure is drawn inside the unit circle).
 uniform vec4 uLook;   // x = brightness, y = glow amount, z = glow reach, w = pixel size in figure units
+uniform float uLayer; // which layer to draw (0 unless set)
 out vec4 fragColor;
 
 float segDist(vec2 p, vec2 a, vec2 b) {
@@ -26,6 +27,7 @@ void main()
         if (r0.x < -0.5) break;
         vec4 r1 = texelFetch(sTD2DInputs[0], ivec2(i, 1), 0);
         vec4 r2 = texelFetch(sTD2DInputs[0], ivec2(i, 2), 0);
+        if (abs(r2.a - uLayer) > 0.5) continue;
         float d;
         if (r0.x < 0.5)      d = segDist(p, r0.yz, vec2(r0.w, r1.x)) - r1.y;
         else if (r0.x < 1.5) d = abs(length(p - r0.yz) - r0.w) - r1.y;

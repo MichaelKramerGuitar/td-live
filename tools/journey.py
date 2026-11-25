@@ -136,3 +136,44 @@ def tension(home, local_key, chord_symbol, depth=0, weights=None):
              'depth': depth,
              'outside': len(outside_tones(chord_symbol, home))}
     return sum(w[k] * v for k, v in parts.items()), parts
+
+
+# ---------------------------------------------------------------- reading Michael's analysis
+import re as _re
+
+_TARGET = _re.compile(r'/\s*(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)\b')
+_PLAIN = _re.compile(r'^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)[^/\s]*$')
+
+
+def role_of(chart, section, bar_in_section, chord_in_bar):
+    """Michael's role string for a chord (chart `analysis`), or ''."""
+    bars = (chart.get('analysis') or {}).get(section) or []
+    if bar_in_section - 1 >= len(bars) or not bars[bar_in_section - 1]:
+        return ''
+    roles = bars[bar_in_section - 1]
+    return str(roles[min(chord_in_bar, len(roles) - 1)] or '')
+
+
+def journey_plan(song):
+    """For every chord event of a formclock.Song: where it lives in the journey.
+    [{'role', 'local' (root of the local tonic, spelled), 'minor' (local tonic is minor), 'depth'}].
+    Rules (from Michael's hearing): 'x/Y' -> local tonic Y (of the home key); a plain numeral (vi, ii, V7 ...)
+    -> home; 'arrival' -> the chord's own root becomes the local tonic; anything else carries the last one on."""
+    out, local, minor = [], song.key, False
+    per_bar = {}
+    for ev in song.events:
+        n = per_bar.get(ev[6], 0)
+        per_bar[ev[6]] = n + 1
+        role = role_of(song.chart, ev[3], ev[5], n)
+        depth = role.count('/')
+        m = _TARGET.search(role)
+        if m:
+            acc, rn = m.group(1) or '', m.group(2)
+            local = practical_key(h.spell(song.key, acc + str(h._ROMAN[rn.upper()])))
+            minor = rn.islower()
+        elif 'arrival' in role.lower():
+            local, minor = practical_key(ev[2].root), ev[2].quality.startswith(('-', 'ø', 'o'))
+        elif _PLAIN.match(role.split(' ')[0] if role else ''):
+            local, minor = song.key, False
+        out.append({'role': role, 'local': local, 'minor': minor, 'depth': depth})
+    return out
