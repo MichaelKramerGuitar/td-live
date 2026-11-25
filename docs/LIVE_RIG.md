@@ -14,6 +14,8 @@
 5. The TDlive window: a **header** (what's happening: armed / count-in / REC time, chart, bar, chord; export
    progress on the right), the **preview**, then three rows of controls (captioned ones show just their value):
    - **CHART**, **KEY**, **TEMPO − bpm +** (2 bpm per click; click the number to go back to the chart's tempo),
+     **METER** (the chart's, or 3/4 to 9/4 with groupings like 7/4 4+3: chords re-fit to the bar, chord changes
+     land on group boundaries, accents move to the group starts),
      then **Rehearse** and **● Record** (each becomes **■ Stop** while running; the armed one has a coloured edge).
    - **MODE**, **ME** (landscape: Outline / Ghost / Negative), **CAMERA** (you in or out of the shot), **FORMAT**,
      **CLICK** Visual / Audio and **EVERY** Beat / Bar / Form (see Click below).

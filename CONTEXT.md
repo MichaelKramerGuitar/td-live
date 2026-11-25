@@ -152,4 +152,9 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   (into the bridge on C7alt) / B / A2. Notation row in the window (mode-only row). Text TOP spec DAT lesson: it
   keeps its old text when the table empties and doesn't re-cook on table changes by itself (hide by font alpha;
   give the text param an expression that reads the table).
+- **2026-11-25 — session 4.** Harmony Journey begins (concept + decisions live in the claude.ai project under
+  `harmony-journey/`, out of git for now). Step 1 code: `tools/journey.py` (cohorts, key torus, perfect-cadence
+  and plagal families spelled toward their targets, related ii, tension dials). Charts: All The Things You Are,
+  Along Came Betty (Michael's changes, his hearing in `analysis`). Harmony: slash chords (`I/3`), -9, maj13, 7b9.
+  Performance meter (Song › Meter, METER button). Too-wide rows shorten the chart title.
 
