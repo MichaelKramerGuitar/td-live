@@ -20,7 +20,7 @@ import time
 import numpy as np
 
 MAXP = 2048
-GRID_N, GRID_S, EXTENT = 17, 34, 1.2
+GRID_N, GRID_S, EXTENT = 13, 26, 1.2
 _MEM = {'sig': None, 'plan': None, 'comet': None, 'trail': [], 'local_w': {}, 'names': [], 'cam': None}
 
 

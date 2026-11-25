@@ -38,8 +38,8 @@ if not has(G, 'Protagonist'):
     pg.appendMenu('Protagonist', label='Protagonist')
     pg.appendFloat('Whispclarity', label='Whisp: Pitch Confidence Needed (0..1)')
     pg.appendFloat('Gridres', label='Gravity Grid Resolution (fraction of the frame)')
-    G.par.Whispclarity, G.par.Gridres = 0.8, 0.35
-    G.par.Whispclarity.default, G.par.Gridres.default = 0.8, 0.35
+    G.par.Whispclarity, G.par.Gridres = 0.8, 0.25
+    G.par.Whispclarity.default, G.par.Gridres.default = 0.8, 0.25
 G.par.Protagonist.menuNames = ['comet', 'whisp']
 G.par.Protagonist.menuLabels = ['Comet', 'Melody whisp (your line, from the pitch follower)']
 
