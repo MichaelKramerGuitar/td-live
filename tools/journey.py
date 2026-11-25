@@ -142,7 +142,7 @@ def tension(home, local_key, chord_symbol, depth=0, weights=None):
 import re as _re
 
 _TARGET = _re.compile(r'/\s*(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)\b')
-_PLAIN = _re.compile(r'^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)[^/\s]*$')
+_PLAIN = _re.compile(r'^(b|#)?(VII|VI|IV|V|III|II|I|vii|vi|iv|v|iii|ii|i)(maj|alt|[-+\u00f8\u00b0o0-9#b])*$')
 
 
 def role_of(chart, section, bar_in_section, chord_in_bar):

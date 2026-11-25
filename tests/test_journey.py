@@ -97,3 +97,5 @@ def test_journey_plan_reads_michaels_roles():
     for ev, p in zip(b.events, j.journey_plan(b)):
         bp.setdefault(ev[6], []).append(p['local'])
     assert bp[5] == ['A'] and bp[9] == ['E']        # Amaj13 arrives; A2 is about E (ii/#V)
+    assert bp[8] == ['G']                            # 'imperfect cadence' is not a numeral: G carries on
+    assert j._PLAIN.match('iv6') and j._PLAIN.match('VI7') and not j._PLAIN.match('imperfect')
