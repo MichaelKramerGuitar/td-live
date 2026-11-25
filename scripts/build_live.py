@@ -596,7 +596,7 @@ for r, groups in enumerate(ROWS):
             widths[b] += int(spare * widths[b] / tot)
     elif spare < 0 and 'btn_chart' in widths:        # too wide: the chart title gives way (it shortens with ...)
         widths['btn_chart'] = max(120, widths['btn_chart'] + spare)
-    CHART_CHARS[0] = max(8, int((widths.get('btn_chart', 0) - 26) / (FONT_SIZE * 0.52))) if 'btn_chart' in widths else CHART_CHARS[0]
+    CHART_CHARS[0] = max(8, int((widths.get('btn_chart', 0) - 26) / (FONT_SIZE * 0.58))) if 'btn_chart' in widths else CHART_CHARS[0]
     y = CTRL_H - PAD - (r + 1) * (CAP_H + BTN_H) - r * ROW_GAP        # bottom of this row's buttons
     x = PAD
     for gi, g in enumerate(groups):
