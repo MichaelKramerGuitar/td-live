@@ -246,13 +246,8 @@ def onCook(scriptOp):
         back, up, ahead = 0.2, 0.045 + 0.008 * math.sin(t * 1.3), 0.22
         ex_, ez_ = c[0] - hd[0] * back, c[2] - hd[1] * back
         eye = (ex_, max(height(ex_, ez_, W) + 0.03, c[1] + up), ez_)
-        look = (c[0] + hd[0] * ahead, c[1] + 0.005, c[2] + hd[1] * ahead)
-        if _MEM.get('bc') is None:
-            _MEM['bc'] = (eye, look)
-        e0, l0 = _MEM['bc']
-        eye = tuple(e0[i] + (eye[i] - e0[i]) * 0.15 for i in range(3))
-        look = tuple(l0[i] + (look[i] - l0[i]) * 0.15 for i in range(3))
-        _MEM['bc'] = (eye, look)
+        look = (c[0] + hd[0] * ahead, c[1] + 0.03, c[2] + hd[1] * ahead)
+        # rigidly attached to the traveller (only the heading is smoothed), so it stays in the lower middle
         cam = Camera(look, eye=eye, fov=L.par.Bodycamfov.eval())
     else:
         _MEM['bc'] = None
