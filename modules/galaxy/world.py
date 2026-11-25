@@ -16,8 +16,8 @@ import time
 
 import numpy as np
 
-MAXP = 1024
-GRID_N, GRID_S, EXTENT = 15, 18, 1.15
+MAXP = 2048
+GRID_N, GRID_S, EXTENT = 17, 34, 1.2
 _MEM = {'sig': None, 'plan': None, 'comet': None, 'trail': [], 'local_w': {}, 'names': [], 'cam': None}
 
 
@@ -82,20 +82,20 @@ def key_place(key, home):
 def wells(home, local):
     """[(x, z, depth, width)] gravity wells: home deepest, home's cohorts shallower, the local tonic too."""
     import journey as j
-    out = [(0.0, 0.0, 0.55, 0.16)]
+    out = [(0.0, 0.0, 0.5, 0.26)]
     cohort = set(j.minor_third_cohort(home)[1:]) | set(j.major_third_cohort(home)[1:])
     for k in cohort:
         x, z = key_place(k, home)
-        out.append((x, z, 0.28, 0.12))
+        out.append((x, z, 0.2, 0.17))
     for k, w in _MEM['local_w'].items():
         if w > 0.01:
             x, z = key_place(k, home)
-            out.append((x, z, 0.3 * w, 0.11))
+            out.append((x, z, 0.22 * w, 0.15))
     return out
 
 
 def height(x, z, W):
-    y = 0.22 * (x * x + z * z)                             # the further from home, the higher the climb
+    y = 0.18 * (x * x + z * z)                             # the further from home, the higher the climb
     for wx, wz, d, s in W:
         y -= d * math.exp(-((x - wx) ** 2 + (z - wz) ** 2) / (s * s))
     return y
@@ -229,7 +229,7 @@ def onCook(scriptOp):
     if _MEM['cam'] is None:
         _MEM['cam'] = tgt
     _MEM['cam'] = tuple(_MEM['cam'][i] + (tgt[i] - _MEM['cam'][i]) * 0.04 for i in range(3))
-    cam = Camera(_MEM['cam'], 1.15 if follow else 2.1, math.radians(L.par.Tilt.eval()),
+    cam = Camera(_MEM['cam'], 1.7 if follow else 2.6, math.radians(L.par.Tilt.eval()),
                  math.radians(L.par.Spin.eval()) + (t * 0.02 if L.par.Drift.eval() else 0.0))
 
     # ---- gravity grid (layer 1)
@@ -306,12 +306,16 @@ def onCook(scriptOp):
     if L.par.Tether.eval():
         tension, parts = j.tension(home, local, cur.symbol.split('/')[0], depth=info['depth'])
         f = min(1.0, tension / 6.0)
-        hq = cam.p(0.0, height(0, 0, W) + 0.012, 0.0)
         tc = (0.6 + 0.4 * f, 0.75 - 0.45 * f, 0.9 - 0.65 * f)
-        mid = ((c[0]) / 2, max(c[1], 0.0) + 0.06 * (1 - f), c[2] / 2)          # slack when tension is low
-        m2 = cam.p(*mid)
-        P.line(q, m2, 0.0012 + 0.002 * f, 0.35 + 0.5 * f, tc, 0.3 * f)
-        P.line(m2, hq, 0.0012 + 0.002 * f, 0.35 + 0.5 * f, tc, 0.3 * f)
+        hy = height(0, 0, W) + 0.012
+        prev_ = q
+        for i in range(1, 13):                                # a rope: sags when slack, straight when taut
+            u = i / 12.0
+            x_, z_ = c[0] * (1 - u), c[2] * (1 - u)
+            y_ = c[1] * (1 - u) + hy * u - 0.12 * (1 - f) * math.sin(math.pi * u)
+            nq = cam.p(x_, y_, z_)
+            P.line(prev_, nq, 0.0012 + 0.0022 * f, 0.35 + 0.5 * f, tc, 0.3 * f)
+            prev_ = nq
         _MEM['tension'] = (tension, parts)
     _MEM['names'] = names if L.par.Names.eval() else []
     _MEM['info'] = (info, cur, local)
