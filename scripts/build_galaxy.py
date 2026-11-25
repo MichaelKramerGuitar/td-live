@@ -88,7 +88,7 @@ cap.par.alignx, cap.par.aligny = 'center', 'bottom'
 cap.par.positiony.expr = 'min(op.Config.par.Width, op.Config.par.Height) * 0.03'
 cap.par.fontcolorr, cap.par.fontcolorg, cap.par.fontcolorb = 0.72, 0.74, 0.8
 cap.par.bgalpha = 0
-cap.par.text.expr = "op('world_callbacks').module.label() if parent().par.Labels else ''"
+cap.par.text.expr = "op('world_callbacks').module.label() if parent().par.Labels and absTime.frame else ''"   # (absTime: re-evaluate every frame)
 ov = ensure(G, compositeTOP, 'over', 600, 0)
 for c_ in list(ov.inputConnectors):
     c_.disconnect()
