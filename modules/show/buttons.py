@@ -62,6 +62,9 @@ def onOffToOn(panelValue):
         par = {'btn_ggrid': G.par.Grid, 'btn_gtether': G.par.Tether, 'btn_gnames': G.par.Names,
                'btn_gcaption': G.par.Labels}[name]
         par.val = not par.eval()
+    elif name == 'btn_gprot':
+        G = op.Visuals.op('galaxy')
+        G.par.Protagonist = 'comet' if G.par.Protagonist == 'whisp' else 'whisp'
     elif name == 'btn_gview':
         G = op.Visuals.op('galaxy')
         names = list(G.par.View.menuNames)

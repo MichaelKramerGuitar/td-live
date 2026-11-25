@@ -33,13 +33,23 @@ if not has(G, 'Bodycamfov'):
     G.par.Bodycamfov.default = 62.0
     G.par.View = 'bodycam'
 
+if not has(G, 'Protagonist'):
+    pg = page(G, 'Galaxy')
+    pg.appendMenu('Protagonist', label='Protagonist')
+    pg.appendFloat('Whispclarity', label='Whisp: Pitch Confidence Needed (0..1)')
+    pg.appendFloat('Gridres', label='Gravity Grid Resolution (fraction of the frame)')
+    G.par.Whispclarity, G.par.Gridres = 0.8, 0.35
+    G.par.Whispclarity.default, G.par.Gridres.default = 0.8, 0.35
+G.par.Protagonist.menuNames = ['comet', 'whisp']
+G.par.Protagonist.menuLabels = ['Comet', 'Melody whisp (your line, from the pitch follower)']
+
 cb = synced(G, textDAT, 'world_callbacks', 'modules/galaxy/world.py', -200, -100)
 pr = ensure(G, scriptTOP, 'prims', 0, 0)
 pr.par.callbacks = cb.path
 pr.par.format = 'rgba32float'
 fx = synced(G, textDAT, 'draw_frag', 'modules/notation/draw.frag', 150, 150)   # the same drawing shader
 passes = {}
-for name, layer, scale, y in (('grid', 1, 0.5, 100), ('bodies', 0, 1.0, -50)):
+for name, layer, scale, y in (('grid', 1, 'parent().par.Gridres', 100), ('bodies', 0, '1.0', -50)):
     d = ensure(G, glslTOP, name, 200, y)
     d.inputConnectors[0].connect(pr)
     d.par.pixeldat = fx.path
@@ -53,6 +63,7 @@ for name, layer, scale, y in (('grid', 1, 0.5, 100), ('bodies', 0, 1.0, -50)):
     d.par.vec0valuey.expr = 'parent().par.Glow'
     d.par.vec0valuez.expr = 'parent().par.Glowreach'
     d.par.vec0valuew.expr = '2.0 / (min(op.Config.par.Width, op.Config.par.Height) * %s)' % scale
+    d.par.vec0valuey.expr = 'parent().par.Glow * (0.6 if %d else 1.0)' % layer
     d.par.vec1name = 'uLayer'
     d.par.vec1valuex = layer
     passes[name] = d

@@ -3,10 +3,11 @@
 //   row 0: type, ax, ay, bx     type 0 = line a->b, 1 = ring (centre a, radius bx), 2 = disc (centre a, radius bx),
 //                               < 0 = end of list
 //   row 1: by, half width, glow, alpha
-//   row 2: r, g, b, layer (draw only primitives whose layer = uLayer: lets one list feed several passes)
+//   row 2: r, g, b, -
+// Layers: rows 3*uLayer .. 3*uLayer+2 hold layer uLayer's own list (each pass only loops over its own layer).
 // Coordinates: the short side of the frame spans -1..1 (the figure is drawn inside the unit circle).
 uniform vec4 uLook;   // x = brightness, y = glow amount, z = glow reach, w = pixel size in figure units
-uniform float uLayer; // which layer to draw (0 unless set)
+uniform float uLayer; // which layer (block of 3 rows) to draw: 0 unless set
 out vec4 fragColor;
 
 float segDist(vec2 p, vec2 a, vec2 b) {
@@ -20,14 +21,14 @@ void main()
     vec2 res = uTDOutputInfo.res.zw;
     vec2 p = (vUV.st - 0.5) * 2.0 * res / min(res.x, res.y);
     int n = textureSize(sTD2DInputs[0], 0).x;
+    int rb = int(uLayer + 0.5) * 3;
     vec3 col = vec3(0.0);
     float px = uLook.w;
     for (int i = 0; i < n; i++) {
-        vec4 r0 = texelFetch(sTD2DInputs[0], ivec2(i, 0), 0);
+        vec4 r0 = texelFetch(sTD2DInputs[0], ivec2(i, rb), 0);
         if (r0.x < -0.5) break;
-        vec4 r1 = texelFetch(sTD2DInputs[0], ivec2(i, 1), 0);
-        vec4 r2 = texelFetch(sTD2DInputs[0], ivec2(i, 2), 0);
-        if (abs(r2.a - uLayer) > 0.5) continue;
+        vec4 r1 = texelFetch(sTD2DInputs[0], ivec2(i, rb + 1), 0);
+        vec4 r2 = texelFetch(sTD2DInputs[0], ivec2(i, rb + 2), 0);
         float d;
         if (r0.x < 0.5)      d = segDist(p, r0.yz, vec2(r0.w, r1.x)) - r1.y;
         else if (r0.x < 1.5) d = abs(length(p - r0.yz) - r0.w) - r1.y;

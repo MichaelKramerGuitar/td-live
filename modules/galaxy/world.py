@@ -10,7 +10,10 @@
 #   - A comet (the traveller) glides from chord to chord leaving a trail; a tether runs from it back home,
 #     tighter and redder as the tension dials rise (tools/journey.py).
 # Drawn as 2D primitives (modules/notation/draw.frag) after a 3D -> 2D perspective projection done here.
-# Layer 1 = the gravity grid (drawn at half resolution), layer 0 = everything else.
+# Output: rows 0-2 = bodies (layer 0, full resolution), rows 3-5 = the gravity grid (layer 1, built with numpy,
+# drawn at low resolution: it's soft background light), so each pass only loops over its own primitives.
+# Protagonist (Galaxy › Protagonist): a comet, or your melody whisp (the pitch follower: each note you play
+# puffs out of the traveller in its palette colour, higher for higher notes, and is left behind as a wake).
 import math
 import time
 
@@ -101,6 +104,13 @@ def height(x, z, W):
     return y
 
 
+def height_np(X, Z, W):
+    Y = 0.18 * (X * X + Z * Z)
+    for wx, wz, d, sg in W:
+        Y = Y - d * np.exp(-((X - wx) ** 2 + (Z - wz) ** 2) / (sg * sg))
+    return Y
+
+
 class Camera:
     """Look-at perspective camera -> figure coordinates (short side of the frame = -1..1).
     Either orbit a target (dist, pitch, yaw) or give the eye position directly (eye=...)."""
@@ -128,6 +138,16 @@ class Camera:
             return None
         return (self.k * sum(d[i] * self.r[i] for i in range(3)) / zc,
                 self.k * sum(d[i] * self.u[i] for i in range(3)) / zc)
+
+    def p_np(self, X, Y, Z):
+        """Vectorised p(): (u, v, depth, valid) arrays."""
+        dx, dy, dz = X - self.eye[0], Y - self.eye[1], Z - self.eye[2]
+        zc = dx * self.f[0] + dy * self.f[1] + dz * self.f[2]
+        ok = zc > 0.05
+        zs = np.where(ok, zc, 1.0)
+        u = self.k * (dx * self.r[0] + dy * self.r[1] + dz * self.r[2]) / zs
+        v = self.k * (dx * self.u[0] + dy * self.u[1] + dz * self.u[2]) / zs
+        return u, v, zc, ok
 
     def scale(self, x, y, z):
         d = (x - self.eye[0], y - self.eye[1], z - self.eye[2])
@@ -178,7 +198,9 @@ def onCook(scriptOp):
     s = E().song()
     if s is None:
         _MEM['names'] = []
-        scriptOp.copyNumpyArray(P.a)
+        empty = np.zeros((3, MAXP, 4), np.float32)
+        empty[0, :, 0] = -1
+        scriptOp.copyNumpyArray(np.concatenate([P.a, empty], axis=0))
         return
     import harmony as h
     import journey as j
@@ -259,25 +281,35 @@ def onCook(scriptOp):
         cam = Camera(_MEM['cam'], 1.7 if follow else 2.6, math.radians(L.par.Tilt.eval()),
                      math.radians(L.par.Spin.eval()) + (t * 0.02 if L.par.Drift.eval() else 0.0))
 
-    # ---- gravity grid (layer 1)
+    # ---- gravity grid (layer 1, numpy)
+    grid = np.zeros((3, MAXP, 4), np.float32)
+    grid[0, :, 0] = -1
     if L.par.Grid.eval():
+        lin = np.linspace(-EXTENT, EXTENT, GRID_N)
+        smp = np.linspace(-EXTENT, EXTENT, GRID_S)
+        segs = []
+        for X, Z in (np.meshgrid(smp, lin), np.meshgrid(lin, smp, indexing='ij')):
+            # rows of X/Z are lines; columns run along each line
+            if X.shape[1] != GRID_S:
+                X, Z = X.T, Z.T
+            u, v, zc, ok = cam.p_np(X, height_np(X, Z, W), Z)
+            good = ok[:, :-1] & ok[:, 1:]
+            depth = 0.5 * (zc[:, :-1] + zc[:, 1:])
+            alpha = np.clip(1.25 - depth / 3.2, 0.12, 1.0) * 0.6
+            segs.append(np.stack([u[:, :-1][good], v[:, :-1][good], u[:, 1:][good], v[:, 1:][good],
+                                  alpha[good]], axis=1))
+        seg = np.concatenate(segs)[:MAXP - 1]
+        n = len(seg)
         gc = (0.35, 0.42, 0.62)
-        xs = [-EXTENT + 2 * EXTENT * i / (GRID_N - 1) for i in range(GRID_N)]
-        ss = [-EXTENT + 2 * EXTENT * i / (GRID_S - 1) for i in range(GRID_S)]
-        for x in xs:
-            prev = None
-            for z in ss:
-                q = cam.p(x, height(x, z, W), z)
-                if prev is not None and q is not None:
-                    P.line(prev, q, 0.0022, 0.55, gc, 0.0, layer=1)
-                prev = q
-        for z in xs:
-            prev = None
-            for x in ss:
-                q = cam.p(x, height(x, z, W), z)
-                if prev is not None and q is not None:
-                    P.line(prev, q, 0.0022, 0.55, gc, 0.0, layer=1)
-                prev = q
+        grid[0, :n, 0] = 0
+        grid[0, :n, 1] = seg[:, 0]
+        grid[0, :n, 2] = seg[:, 1]
+        grid[0, :n, 3] = seg[:, 2]
+        grid[1, :n, 0] = seg[:, 3]
+        grid[1, :n, 1] = 0.0026
+        grid[1, :n, 2] = 0.0
+        grid[1, :n, 3] = seg[:, 4]
+        grid[2, :n, 0], grid[2, :n, 1], grid[2, :n, 2] = gc
 
     # ---- stars: the 12 keys
     names = []
@@ -330,7 +362,11 @@ def onCook(scriptOp):
         f = i / len(tr)
         P.line(a_, b_, 0.0025 * f + 0.0008, 0.8 * f, col, 0.6 * f)
     q = cam.p(*c)
-    P.disc(q, min(0.022, 0.008 * cam.scale(*c)), 1.0, (1.0, 0.97, 0.9), 1.6)
+    if L.par.Protagonist.eval() == 'whisp':
+        draw_whisp(P, cam, c, t, L)
+        P.disc(q, min(0.012, 0.004 * cam.scale(*c)), 0.9, (1.0, 0.97, 0.9), 0.8)      # a small bright core
+    else:
+        P.disc(q, min(0.022, 0.008 * cam.scale(*c)), 1.0, (1.0, 0.97, 0.9), 1.6)
     if L.par.Tether.eval():
         tension, parts = j.tension(home, local, cur.symbol.split('/')[0], depth=info['depth'])
         f = min(1.0, tension / 6.0)
@@ -347,8 +383,46 @@ def onCook(scriptOp):
         _MEM['tension'] = (tension, parts)
     _MEM['names'] = names if L.par.Names.eval() else []
     _MEM['info'] = (info, cur, local)
-    scriptOp.copyNumpyArray(P.a)
+    scriptOp.copyNumpyArray(np.concatenate([P.a, grid], axis=0))
     return
+
+
+def draw_whisp(P, cam, c, t, L):
+    """The melody whisp: each note you play (pitch follower) puffs out of the traveller - palette colour of its
+    spelling in the current chord-scale, higher above the traveller for higher notes - and stays where it was
+    born, so the traveller leaves your line behind as a glowing wake. Consecutive notes are joined."""
+    import harmony as h
+    life = max(0.5, L.par.Trail.eval() * 1.6)
+    a = op.Analysis.op('out')
+    try:
+        clarity, level, midi = a['clarity'].eval(), a['level'].eval(), a['midi'].eval()
+    except Exception:
+        clarity, level, midi = 0, 0, 0
+    puffs = _MEM.setdefault('puffs', [])
+    if clarity >= L.par.Whispclarity.eval() and level > 0.04 and midi > 0:
+        pc = int(round(midi)) % 12
+        last = puffs[-1] if puffs else None
+        if last is None or last[6] != pc or t - last[4] > 0.12:
+            tones = op.Song.op('tones')
+            names = {h.pc(r[0].val): r[0].val for r in tones.rows()[1:]} if tones.numRows > 1 else {}
+            name = names.get(pc) or ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'][pc]
+            hd = _MEM.get('heading') or (0.0, 1.0)
+            side = 0.025 * math.sin(t * 2.3)
+            up = 0.015 + 0.09 * max(0.0, min(1.0, (midi - 40) / 48.0))
+            puffs.append([c[0] - hd[1] * side, c[1] + up, c[2] + hd[0] * side, colour(name), t, level, pc])
+    _MEM['puffs'] = [p for p in puffs if t - p[4] < life][-160:]
+    prev = None
+    for x, y, z, rgb, tb, lv, pc in _MEM['puffs']:
+        age = (t - tb) / life
+        f = (1.0 - age) ** 1.5
+        y2 = y + 0.03 * age                                   # drifts up as it fades
+        q = cam.p(x, y2, z)
+        sc = cam.scale(x, y2, z)
+        r = min(0.03, (0.004 + 0.006 * min(1.0, lv * 1.5)) * sc * (1.0 + 1.2 * age))
+        P.disc(q, r, 0.9 * f, rgb, 1.4 * f)
+        if prev is not None and tb - prev[1] < 0.6:
+            P.line(prev[0], q, 0.0018, 0.6 * f, rgb, 0.5 * f)
+        prev = (q, tb)
 
 
 def names_table(dat):
