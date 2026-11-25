@@ -168,4 +168,8 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   with the notation shader (layers: grid at half resolution). Mode row now per mode (Galaxy: camera view, grid,
   tether, key names, caption). Lesson: a Text TOP expression with no changing reference never re-evaluates
   (add absTime.frame).
+- **2026-11-25 — session 4d.** Galaxy body cam (Michael: the melody traveller is the protagonist): the camera
+  rides just behind and above the traveller, looking along its smoothed heading, wide lens (Body Cam Field Of
+  View, 62). Camera View now cycles Body cam / Follow / From above; body cam is the default. Rigid attachment
+  (only the heading smoothed) keeps the traveller in the lower middle; sizes capped up close.
 
