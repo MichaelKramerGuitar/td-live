@@ -2,7 +2,6 @@
 // Home's particles in the home key's palette colour, travellers in the local key's; streaming ones a bit brighter.
 uniform vec4 uHomeCol;    // rgb, w = brightness
 uniform vec4 uLocalCol;   // rgb, w = share of particles at home
-uniform vec4 uEpoch;      // x = epoch
 out vec4 fragColor;
 void main()
 {

@@ -167,6 +167,7 @@ sim.par.pixeldat = simdat.path
 sim.par.format = 'rgba32float'
 sim.par.inputfiltertype = 'nearest'
 sim.par.outputresolution = 'useinput'
+sim.seq.vec.numBlocks = max(4, sim.seq.vec.numBlocks)
 for i, nm in enumerate(('uHome', 'uLocal', 'uSim', 'uStep')):
     sim.par['vec%dname' % i] = nm
 sim.par.vec3valuey = 3
@@ -179,7 +180,8 @@ col.par.pixeldat = coldat.path
 col.par.format = 'rgba16float'
 col.par.inputfiltertype = 'nearest'
 col.par.outputresolution = 'useinput'
-for i, nm in enumerate(('uHomeCol', 'uLocalCol', 'uEpoch')):
+col.seq.vec.numBlocks = max(2, col.seq.vec.numBlocks)
+for i, nm in enumerate(('uHomeCol', 'uLocalCol')):
     col.par['vec%dname' % i] = nm
 
 geo = ensure(G, geometryCOMP, 'att_geo', 1500, 150)
