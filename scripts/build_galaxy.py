@@ -133,7 +133,7 @@ if not has(G, 'Texture'):
     pg.appendFloat('Particlesize', label='Particle Size')
     pg.appendFloat('Trailfade', label='Trail Length (fade per frame)')
     pg.appendFloat('Simspeed', label='Flow Speed')
-    for k, v in (('Particles', 32), ('Attractorsize', 0.16), ('Homeshare', 0.25), ('Particlebright', 0.35),
+    for k, v in (('Particles', 32), ('Attractorsize', 0.16), ('Homeshare', 0.25), ('Particlebright', 0.15),
                  ('Particlesize', 0.004), ('Trailfade', 0.9), ('Simspeed', 1.6)):
         G.par[k] = v
         G.par[k].default = v

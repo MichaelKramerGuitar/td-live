@@ -37,8 +37,10 @@ float hash(float n) { return fract(sin(n) * 43758.5453123); }
 
 vec3 seedPoint(int id, float h)
 {
+    // a point on the attractor, nudged a little: particles that share a seed drift apart (chaos does the rest)
     int i = int(h * 4096.0) % 4096;
-    return texelFetch(sTD2DInputs[1], ivec2(i, id), 0).xyz;
+    vec3 j = vec3(hash(h * 17.1), hash(h * 29.3), hash(h * 41.7)) - 0.5;
+    return texelFetch(sTD2DInputs[1], ivec2(i, id), 0).xyz + 0.06 * j;
 }
 
 void main()
