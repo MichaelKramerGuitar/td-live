@@ -116,3 +116,168 @@ ov.par.operand = 'over'
 o1 = ensure(G, nullTOP, 'out1', 750, 0)
 o1.inputConnectors[0].connect(ov)
 REPORT['galaxy'] = G.path
+
+# ---------------------------------------------------------------- the Attractor texture (GPU particles)
+# att_seeds (Script TOP: points on each attractor) + att_fb (last frame) -> att_sim (GLSL: the simulation, one pixel
+# per particle) -> att_col (colours) -> att_geo (instanced billboards) -> att_render (camera att_cam, set each frame to
+# match the galaxy's own camera) -> points / trails / both -> + the stars and planets (or alone) -> texture switch.
+if not has(G, 'Texture'):
+    pg = page(G, 'Attractor')
+    pg.appendMenu('Texture', label='Texture')
+    pg.appendMenu('Attractorview', label='Attractor View')
+    pg.appendMenu('Particlestyle', label='Particles As')
+    pg.appendInt('Particles', label='Particles (thousands)')
+    pg.appendFloat('Attractorsize', label='Attractor Size (world)')
+    pg.appendFloat('Homeshare', label='Share Of Particles That Stay Home')
+    pg.appendFloat('Particlebright', label='Particle Brightness')
+    pg.appendFloat('Particlesize', label='Particle Size')
+    pg.appendFloat('Trailfade', label='Trail Length (fade per frame)')
+    pg.appendFloat('Simspeed', label='Flow Speed')
+    for k, v in (('Particles', 32), ('Attractorsize', 0.16), ('Homeshare', 0.25), ('Particlebright', 0.35),
+                 ('Particlesize', 0.004), ('Trailfade', 0.9), ('Simspeed', 1.6)):
+        G.par[k] = v
+        G.par[k].default = v
+G.par.Texture.menuNames = ['lines', 'attractor']
+G.par.Texture.menuLabels = ['Lines (live-03)', 'Attractor']
+G.par.Attractorview.menuNames = ['stars', 'abstract']
+G.par.Attractorview.menuLabels = ['With the stars and planets', 'Abstract (particles only)']
+G.par.Particlestyle.menuNames = ['points', 'trails', 'both']
+G.par.Particlestyle.menuLabels = ['Points', 'Trails', 'Both']
+
+seedcb = synced(G, textDAT, 'att_seeds_callbacks', 'modules/galaxy/seeds.py', 900, 400)
+seeds = ensure(G, scriptTOP, 'att_seeds', 1050, 400)
+seeds.par.callbacks = seedcb.path
+seeds.par.format = 'rgba32float'
+ini = ensure(G, constantTOP, 'att_init', 900, 250)
+ini.par.format = 'rgba32float'
+ini.par.outputresolution = 'custom'
+ini.par.resolutionw = 256
+ini.par.resolutionh.expr = 'max(1, int(parent().par.Particles * 1000 / 256))'
+ini.par.colorr = ini.par.colorg = ini.par.colorb = 0.0
+ini.par.alpha = -1.0
+fb = ensure(G, feedbackTOP, 'att_fb', 1050, 250)
+fb.inputConnectors[0].connect(ini)
+simdat = synced(G, textDAT, 'att_sim_frag', 'modules/galaxy/attractor_sim.frag', 1050, 550)
+sim = ensure(G, glslTOP, 'att_sim', 1200, 300)
+for c_ in list(sim.inputConnectors):
+    c_.disconnect()
+sim.inputConnectors[0].connect(fb)
+sim.inputConnectors[1].connect(seeds)
+sim.par.pixeldat = simdat.path
+sim.par.format = 'rgba32float'
+sim.par.inputfiltertype = 'nearest'
+sim.par.outputresolution = 'useinput'
+for i, nm in enumerate(('uHome', 'uLocal', 'uSim', 'uStep')):
+    sim.par['vec%dname' % i] = nm
+sim.par.vec3valuey = 3
+sim.par.vec3valuez.expr = 'parent().par.Simspeed'
+fb.par.top = sim.path
+coldat = synced(G, textDAT, 'att_col_frag', 'modules/galaxy/attractor_color.frag', 1200, 550)
+col = ensure(G, glslTOP, 'att_col', 1350, 300)
+col.inputConnectors[0].connect(sim)
+col.par.pixeldat = coldat.path
+col.par.format = 'rgba16float'
+col.par.inputfiltertype = 'nearest'
+col.par.outputresolution = 'useinput'
+for i, nm in enumerate(('uHomeCol', 'uLocalCol', 'uEpoch')):
+    col.par['vec%dname' % i] = nm
+
+geo = ensure(G, geometryCOMP, 'att_geo', 1500, 150)
+for ch in list(geo.children):
+    if ch.name not in ('quad', 'att_mat', 'att_vert', 'att_frag'):
+        ch.destroy()
+quad = ensure(geo, rectangleSOP, 'quad', 0, 0)
+quad.par.sizex = quad.par.sizey = 1.0
+quad.render = quad.display = True
+geo.par.instancing = True
+geo.par.instanceop = sim.path
+geo.par.instancetx, geo.par.instancety, geo.par.instancetz = 'r', 'g', 'b'
+geo.par.instancecolorop = col.path
+geo.par.instancer, geo.par.instanceg, geo.par.instanceb = 'r', 'g', 'b'
+vd = synced(G, textDAT, 'att_vert', 'modules/galaxy/particle.vert', 1350, 50)
+pd = synced(G, textDAT, 'att_frag', 'modules/galaxy/particle.frag', 1350, -50)
+mat = ensure(G, glslMAT, 'att_mat', 1500, 0)
+mat.par.vdat, mat.par.pdat = vd.path, pd.path
+mat.par.vec0name = 'uPoint'
+mat.par.vec0valuex.expr = 'parent().par.Particlesize'
+mat.par.blending = True
+mat.par.srcblend, mat.par.destblend = 'one', 'one'
+mat.par.depthtest = False
+mat.par.depthwriting = False
+geo.par.material = mat.path
+camo = ensure(G, cameraCOMP, 'att_cam', 1500, -150)
+vm = list(camo.par.viewanglemethod.menuNames)
+camo.par.viewanglemethod.expr = "%r if op.Config.par.Width >= op.Config.par.Height else %r" % (
+    [m for m in vm if 'vert' in m.lower()][0], [m for m in vm if 'hor' in m.lower()][0])
+camo.par.near = 0.01
+rend = ensure(G, renderTOP, 'att_render', 1650, 150)
+rend.par.camera = camo.path
+rend.par.geometry = geo.path
+rend.par.outputresolution = 'custom'
+rend.par.resolutionw.expr, rend.par.resolutionh.expr = 'op.Config.par.Width', 'op.Config.par.Height'
+rend.par.format = 'rgba16float'
+rend.par.bgcolora = 0
+# trails: last frame faded + this frame
+tfb = ensure(G, feedbackTOP, 'att_trail_fb', 1650, 0)
+tfb.inputConnectors[0].connect(rend)
+fade = ensure(G, levelTOP, 'att_fade', 1800, 0)
+fade.inputConnectors[0].connect(tfb)
+fade.par.brightness1.expr = 'parent().par.Trailfade'
+trail = ensure(G, compositeTOP, 'att_trail', 1950, 50)
+for c_ in list(trail.inputConnectors):
+    c_.disconnect()
+trail.inputConnectors[0].connect(rend)
+trail.inputConnectors[1].connect(fade)
+trail.par.operand = 'add'
+trail.par.format = 'rgba16float'
+tfb.par.top = trail.path
+both = ensure(G, compositeTOP, 'att_both', 2100, 100)
+for c_ in list(both.inputConnectors):
+    c_.disconnect()
+both.inputConnectors[0].connect(rend)
+both.inputConnectors[1].connect(trail)
+both.par.operand = 'add'
+sty = ensure(G, switchTOP, 'att_style', 2250, 150)
+for c_ in list(sty.inputConnectors):
+    c_.disconnect()
+for i, t_ in enumerate((rend, trail, both)):
+    sty.inputConnectors[i].connect(t_)
+sty.par.index.expr = "['points', 'trails', 'both'].index(parent().par.Particlestyle.eval())"
+tone_ = ensure(G, glslTOP, 'att_tone', 2400, 150)            # soft tone map: dense regions glow instead of clipping
+tone_.inputConnectors[0].connect(sty)
+tdat = ensure(G, textDAT, 'att_tone_frag', 2400, 0)
+tdat.text = ("out vec4 fragColor;\nvoid main() {\n    vec4 c = texture(sTD2DInputs[0], vUV.st);\n"
+             "    fragColor = TDOutputSwizzle(vec4(1.0 - exp(-c.rgb), 1.0));\n}\n")
+tone_.par.pixeldat = tdat.path
+withb = ensure(G, compositeTOP, 'att_withbodies', 2550, 150)
+for c_ in list(withb.inputConnectors):
+    c_.disconnect()
+withb.inputConnectors[0].connect(tone_)
+withb.inputConnectors[1].connect(passes['bodies'])
+withb.par.operand = 'add'
+asel = ensure(G, switchTOP, 'att_view', 2700, 150)
+for c_ in list(asel.inputConnectors):
+    c_.disconnect()
+asel.inputConnectors[0].connect(withb)
+asel.inputConnectors[1].connect(tone_)
+asel.par.index.expr = "0 if parent().par.Attractorview == 'stars' else 1"
+tsel = ensure(G, switchTOP, 'texture', 2850, 50)
+for c_ in list(tsel.inputConnectors):
+    c_.disconnect()
+tsel.inputConnectors[0].connect(add)
+tsel.inputConnectors[1].connect(asel)
+tsel.par.index.expr = "0 if parent().par.Texture == 'lines' else 1"
+for c_ in list(ov.inputConnectors):
+    c_.disconnect()
+ov.inputConnectors[0].connect(cap)
+ov.inputConnectors[1].connect(nm)
+ov.inputConnectors[2].connect(tsel)
+# the per-frame link (camera + simulation inputs) rides on names_tick
+nx.text = ("# fills names_spec (re-cooking the names Text TOP), points the particle camera, feeds the simulation\n"
+           "def onFrameStart(frame):\n"
+           "    if op.Show.par.Mode == 'galaxy':\n"
+           "        m = op('world_callbacks').module\n"
+           "        m.names_table(op('names_spec'))\n"
+           "        op('names').cook(force=True)\n"
+           "        m.frame_update(parent())\n"
+           "    return\n")

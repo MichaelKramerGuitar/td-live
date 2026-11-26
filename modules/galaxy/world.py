@@ -130,6 +130,7 @@ class Camera:
         self.u = [self.r[1] * self.f[2] - self.r[2] * self.f[1], self.r[2] * self.f[0] - self.r[0] * self.f[2],
                   self.r[0] * self.f[1] - self.r[1] * self.f[0]]
         self.k = 1.0 / math.tan(math.radians(fov) / 2)
+        self.fov = fov
 
     def p(self, x, y, z):
         d = (x - self.eye[0], y - self.eye[1], z - self.eye[2])
@@ -164,6 +165,7 @@ def plan_for(s):
         _MEM['local_w'] = {}
         _MEM['trail'] = []
         _MEM['comet'] = None
+        _MEM['reset'] = True                  # a new song: the particles start again at home
     return _MEM['plan']
 
 
@@ -284,7 +286,7 @@ def onCook(scriptOp):
     # ---- gravity grid (layer 1, numpy)
     grid = np.zeros((3, MAXP, 4), np.float32)
     grid[0, :, 0] = -1
-    if L.par.Grid.eval():
+    if L.par.Grid.eval() and L.par.Texture.eval() == 'lines':
         lin = np.linspace(-EXTENT, EXTENT, GRID_N)
         smp = np.linspace(-EXTENT, EXTENT, GRID_S)
         segs = []
@@ -383,8 +385,55 @@ def onCook(scriptOp):
         _MEM['tension'] = (tension, parts)
     _MEM['names'] = names if L.par.Names.eval() else []
     _MEM['info'] = (info, cur, local)
+    _MEM['camspec'] = (cam.eye, cam.r, cam.u, cam.f, cam.fov)
+    # the Attractor texture: which attractor each key area holds, where, how wild (frame_update sends it on)
+    import attractors as AT
+    if _MEM.get('sim_local') != local:
+        _MEM['sim_local'] = local
+        _MEM['epoch'] = _MEM.get('epoch', 0) + 1
+    size = L.par.Attractorsize.eval()
+    hx, hz = key_place(home, home)
+    lx, lz = star
+    tens = j.tension(home, local, cur.symbol.split('/')[0], depth=info['depth'])[0]
+    _MEM['sim'] = {
+        'home': (hx, height(hx, hz, W) + size * 1.1, hz, ATT_ORDER.index(AT.attractor_for(home, home))),
+        'local': (lx, height(lx, lz, W) + size * 1.1, lz, ATT_ORDER.index(AT.attractor_for(home, local))),
+        'tension': min(1.0, 0.15 + tens / 7.0), 'epoch': _MEM['epoch'], 'size': size,
+        'homecol': colour(home), 'localcol': colour(local)}
     scriptOp.copyNumpyArray(np.concatenate([P.a, grid], axis=0))
     return
+
+
+ATT_ORDER = ['lorenz', 'thomas', 'aizawa', 'dadras', 'halvorsen', 'tscus', 'fourwing']   # = gen_attractor_glsl.py
+
+
+def frame_update(G):
+    """Every frame (galaxy/names_tick): point the TD camera like ours, feed the particle simulation."""
+    spec, sim = _MEM.get('camspec'), _MEM.get('sim')
+    if spec is None or sim is None:
+        return
+    eye, r, u, f, fov = spec
+    cam = G.op('att_cam')
+    m = tdu.Matrix()
+    cols = (r, u, (-f[0], -f[1], -f[2]), eye)
+    for c_ in range(4):
+        for r_ in range(3):
+            m[r_, c_] = cols[c_][r_]
+    cam.setTransform(m)
+    cam.par.fov = fov
+    sm = G.op('att_sim')
+    sm.par.vec0valuex, sm.par.vec0valuey, sm.par.vec0valuez, sm.par.vec0valuew = sim['home']
+    sm.par.vec1valuex, sm.par.vec1valuey, sm.par.vec1valuez, sm.par.vec1valuew = sim['local']
+    sm.par.vec2valuex, sm.par.vec2valuey = sim['tension'], sim['epoch']
+    sm.par.vec2valuez, sm.par.vec2valuew = sim['size'], G.par.Homeshare.eval()
+    sm.par.vec3valuex = absTime.frame
+    reset = _MEM.pop('reset', False)
+    sm.par.vec3valuew = 1.0 if reset else 0.0
+    cl_ = G.op('att_col')
+    cl_.par.vec0valuex, cl_.par.vec0valuey, cl_.par.vec0valuez = sim['homecol']
+    cl_.par.vec0valuew = G.par.Particlebright.eval()
+    cl_.par.vec1valuex, cl_.par.vec1valuey, cl_.par.vec1valuez = sim['localcol']
+    cl_.par.vec1valuew = G.par.Homeshare.eval()
 
 
 def draw_whisp(P, cam, c, t, L):

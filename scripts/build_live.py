@@ -474,9 +474,10 @@ BG = (0.055, 0.058, 0.07)
 CAP = {'btn_meter': 'METER', 'btn_chart': 'CHART', 'btn_key': 'KEY', 'btn_tempo': 'TEMPO', 'btn_mode': 'MODE', 'btn_me': 'ME',
        'btn_camera': 'CAMERA', 'btn_format': 'FORMAT', 'btn_take': 'TAKE', 'btn_clickv': 'CLICK',
        'btn_clickevery': 'EVERY', 'btn_ncaption': 'CAPTION', 'btn_nmap': 'HARMONIC MAP', 'btn_nnames': 'NOTE NAMES',
-       'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING', 'btn_gview': 'CAMERA VIEW', 'btn_gprot': 'PROTAGONIST', 'btn_ggrid': 'GRAVITY GRID',
-       'btn_gtether': 'TETHER HOME', 'btn_gnames': 'KEY NAMES', 'btn_gcaption': 'CAPTION'}
-GROW = {'btn_gprot', 'btn_gview', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption', 'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
+       'btn_ndo': 'HARMONY CIRCLES', 'btn_nphrasing': 'PHRASING', 'btn_gview': 'CAMERA', 'btn_gprot': 'TRAVELLER', 'btn_ggrid': 'GRID',
+       'btn_gtether': 'TETHER', 'btn_gnames': 'NAMES', 'btn_gcaption': 'CAPTION', 'btn_gtex': 'TEXTURE',
+       'btn_gpstyle': 'PARTICLES', 'btn_gaview': 'SHOW'}
+GROW = {'btn_gtex', 'btn_gpstyle', 'btn_gaview', 'btn_gprot', 'btn_gview', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption', 'btn_chart', 'btn_mode', 'btn_take', 'btn_record', 'btn_rehearse', 'btn_me', 'btn_ncaption', 'btn_nmap',
         'btn_nnames', 'btn_ndo', 'btn_nphrasing'}
 ROWS = [   # groups of buttons per row
     [['btn_chart', 'btn_key', 'btn_tempo_down', 'btn_tempo', 'btn_tempo_up', 'btn_meter'], ['btn_rehearse', 'btn_record']],
@@ -484,7 +485,8 @@ ROWS = [   # groups of buttons per row
     [['btn_take', 'btn_play', 'btn_export', 'btn_delete']],
     {   # the mode row: each mode lays out its own controls in the same place
         'notation': [['btn_ncaption', 'btn_nmap', 'btn_nnames', 'btn_ndo', 'btn_nphrasing']],
-        'galaxy': [['btn_gview', 'btn_gprot', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption']],
+        'galaxy': [['btn_gtex', 'btn_gpstyle', 'btn_gaview'],
+                   ['btn_gview', 'btn_gprot', 'btn_ggrid', 'btn_gtether', 'btn_gnames', 'btn_gcaption']],
     },
 ]
 MODE_ONLY = {}
@@ -507,7 +509,8 @@ WIDEST = {   # the widest text each button can show (sets its width)
     'btn_clickv': ['Visual'], 'btn_clicka': ['Audio'], 'btn_clickevery': ['Beat', 'Bar', 'Form'],
     'btn_ncaption': ['On', 'Off'], 'btn_nmap': ['On', 'Off'], 'btn_nnames': ['On', 'Off'],
     'btn_ndo': ['Fixed do', 'Movable do'],
-    'btn_gview': ['Follow the traveller', 'From above', 'Body cam'], 'btn_gprot': ['Melody whisp', 'Comet'], 'btn_ggrid': ['On', 'Off'], 'btn_gtether': ['On', 'Off'],
+    'btn_gview': ['Body cam', 'Follow', 'Above'], 'btn_gprot': ['Whisp', 'Comet'],
+    'btn_gtex': ['Attractor', 'Lines'], 'btn_gpstyle': ['Points', 'Trails', 'Both'], 'btn_gaview': ['With stars', 'Abstract'], 'btn_ggrid': ['On', 'Off'], 'btn_gtether': ['On', 'Off'],
     'btn_gnames': ['On', 'Off'], 'btn_gcaption': ['On', 'Off'], 'btn_nphrasing': ['8+2 \u00b7 4', 'Alternate', 'as written'],
 }
 CTRL_H = PAD * 2 + len(ROWS) * (CAP_H + BTN_H) + (len(ROWS) - 1) * ROW_GAP
@@ -713,8 +716,11 @@ LABELS = {
     'btn_nnames': "'On' if op.Visuals.op('notation').par.Names else 'Off'",
     'btn_ndo': "'Movable do' if op.Visuals.op('notation').par.Do == 'movable' else 'Fixed do'",
     'btn_nphrasing': "op.Visuals.op('notation').op('prims_callbacks').module.phrasing_label()",
-    'btn_gview': "{'bodycam': 'Body cam', 'follow': 'Follow the traveller', 'overview': 'From above'}.get(op.Visuals.op('galaxy').par.View.eval(), '?')",
-    'btn_gprot': "'Melody whisp' if op.Visuals.op('galaxy').par.Protagonist == 'whisp' else 'Comet'",
+    'btn_gview': "{'bodycam': 'Body cam', 'follow': 'Follow', 'overview': 'Above'}.get(op.Visuals.op('galaxy').par.View.eval(), '?')",
+    'btn_gtex': "op.Visuals.op('galaxy').par.Texture.eval().capitalize()",
+    'btn_gpstyle': "op.Visuals.op('galaxy').par.Particlestyle.eval().capitalize()",
+    'btn_gaview': "'With stars' if op.Visuals.op('galaxy').par.Attractorview == 'stars' else 'Abstract'",
+    'btn_gprot': "'Whisp' if op.Visuals.op('galaxy').par.Protagonist == 'whisp' else 'Comet'",
     'btn_ggrid': "'On' if op.Visuals.op('galaxy').par.Grid else 'Off'",
     'btn_gtether': "'On' if op.Visuals.op('galaxy').par.Tether else 'Off'",
     'btn_gnames': "'On' if op.Visuals.op('galaxy').par.Names else 'Off'",
