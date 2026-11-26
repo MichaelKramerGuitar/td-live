@@ -40,6 +40,16 @@ def halvorsen(x, y, z, a=1.89):
             -a * z - 4 * x - 4 * y - x * x)
 
 
+def tscus(x, y, z, a=32.48, b=45.84, c=1.18, d=0.13, e=0.57, f=14.7):
+    """Three-Scroll Unified Chaotic System."""
+    return a * (y - x) + d * x * z, b * x - x * z + f * y, c * z + x * y - e * x * x
+
+
+def fourwing(x, y, z, a=0.2, b=0.01, c=-0.4):
+    """Four-Wing attractor."""
+    return a * x + y * z, b * x + c * y - x * z, -z - x * y
+
+
 # name: (field, native dt, a start point on the attractor)
 ATTRACTORS = {
     'lorenz': (lorenz, 0.004, (1.0, 1.0, 20.0)),
@@ -47,6 +57,8 @@ ATTRACTORS = {
     'aizawa': (aizawa, 0.008, (0.1, 0.0, 0.0)),
     'dadras': (dadras, 0.004, (1.1, 2.1, -2.0)),
     'halvorsen': (halvorsen, 0.004, (-1.48, -1.51, 2.04)),
+    'tscus': (tscus, 0.0004, (-0.29, -0.25, -0.59)),
+    'fourwing': (fourwing, 0.02, (1.3, -0.18, 0.01)),
 }
 _NORM = {}
 _SEEDS = {}
@@ -92,8 +104,17 @@ def calm(U):
     return np.stack([-y + pull * x, x + pull * y, -1.5 * z], 1)
 
 
+def effective_tension(name, tension):
+    """Lorenz has a dead zone: blended with the calm orbit anywhere short of full strength it sinks into its two
+    fixed points (two still eyes). So Lorenz is calm below tension 0.3 and fully wild from 0.3 up."""
+    if name == 'lorenz' and tension >= 0.3:
+        return 1.0
+    return tension
+
+
 def field_u(name, U, tension):
     """Velocity in normalised space (u = (x - centre) / radius, unit typical speed)."""
+    tension = effective_tension(name, tension)
     f, dt, start = ATTRACTORS[name]
     c, R, speed = norm(name)
     X = c + R * U
@@ -122,3 +143,30 @@ def sample(name, n=2000, steps=1200, tension=1.0, keep=400, seed=0):
         if i >= steps - keep:
             out.append(U.copy())
     return np.array(out)
+
+
+# ---------------------------------------------------------------- one attractor per role (Michael, 2026-11-26)
+ROLES = {
+    'home': 'aizawa',              # the settled whole
+    'major_third': 'halvorsen',    # Coltrane cohort (C E Ab ...): three lobes; alternative: 'tscus' (three scrolls)
+    'minor_third': 'fourwing',     # C Eb Gb A cohort: four wings
+    'near': 'thomas',              # one or two steps round the circle of fifths
+    'far': 'lorenz',               # everywhere else: two lobes, the two-way pull
+}
+
+
+def role_of_key(home, local):
+    import harmony as h
+    import journey as j
+    if h.pc(local) == h.pc(home):
+        return 'home'
+    if h.pc(local) in {h.pc(k) for k in j.major_third_cohort(home)}:
+        return 'major_third'
+    if h.pc(local) in {h.pc(k) for k in j.minor_third_cohort(home)}:
+        return 'minor_third'
+    return 'near' if j.fifths_distance(home, local) <= 2 else 'far'
+
+
+def attractor_for(home, local, roles=None):
+    """Which attractor a key area gets, by its relation to home."""
+    return (roles or ROLES)[role_of_key(home, local)]

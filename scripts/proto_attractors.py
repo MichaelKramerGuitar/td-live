@@ -31,7 +31,7 @@ def rot(P, az, el):
 
 
 VIEW = {'lorenz': (0.0, -1.5708), 'thomas': (0.7, 0.6), 'aizawa': (0.3, -1.1), 'dadras': (0.5, -0.9),
-        'halvorsen': (0.8, 0.55)}
+        'halvorsen': (0.8, 0.55), 'tscus': (0.6, -1.2), 'fourwing': (0.5, 0.7)}
 
 
 def splat(img, P, col, size, weight=1.0, scale=0.42, centre=(0.5, 0.5)):
@@ -74,8 +74,10 @@ def sheet_tension(out, cell=360):
             splat(img, rot(S, az, el), col * 0.5 + 0.5 * np.array([1, 1, 1]) * 0.15, cell)
             im = Image.fromarray(tone(img, 0.08))
             big.paste(im, (c * cell, r * cell + 40))
-            label(big, '%s  -  %s' % (name.capitalize(), tl), (c * cell + 10, r * cell + 48), 15)
-    label(big, 'Attractor texture prototype: tension (calm at home -> wild far away), colour = Ab (home)', (10, 10))
+            role = [k for k, v in A.ROLES.items() if v == name]
+            label(big, '%s%s  -  %s' % (name.capitalize(), ' [%s]' % role[0] if role else '', tl),
+                  (c * cell + 10, r * cell + 48), 15)
+    label(big, 'Attractors by role, calm -> wild (Lorenz: calm below 0.3, fully wild from 0.3)', (10, 10))
     big.save(os.path.join(out, 'attractors_tension.png'))
 
 
@@ -91,8 +93,10 @@ def key_place(key, home):
     return np.array([r * np.sin(a), 0.0, r * np.cos(a)])
 
 
-def journey(name, chart_id, key, bars_to_show, out, n=3000, frames_per_bar=40, size=0.2, home_share=0.25,
-            with_stars=True, tag=''):
+def journey(chart_id, key, bars_to_show, out, n=3000, frames_per_bar=40, size=0.2, home_share=0.25,
+            with_stars=True, tag='', style='both', trail_len=24):
+    """Particles in one attractor per key area (by role: attractors.ROLES), streaming key to key; a share always
+    stays on home's calm orbit. style: 'points', 'trails' or 'both'."""
     import formclock as fc
     import journey as J
     s = fc.Song(cl.load_chart(os.path.join(ROOT, 'charts', chart_id + '.yaml')), key=key)
@@ -100,75 +104,92 @@ def journey(name, chart_id, key, bars_to_show, out, n=3000, frames_per_bar=40, s
     per_bar = {}
     for ev, p in zip(s.events, plan):
         per_bar.setdefault(ev[6], (p, ev[2]))
-    f_, dt, start = A.ATTRACTORS[name]
-    c, R, speed = A.norm(name)
-    h = dt * speed / R
     rng = np.random.default_rng(1)
-    seeds = (A._SEEDS[name] - c) / R
-    X = seeds[rng.integers(0, len(seeds), n)] * size          # world 3D, all at home to begin
-    homebound = np.arange(n) < int(n * home_share)            # these always remember home
-    captured = np.ones(n, bool)                               # riding an attractor (else streaming to one)
-    trail = []
-    shots = {}
+    home_att = A.attractor_for(key, key)
+    for nm in A.ATTRACTORS:
+        A.norm(nm)
+    seeds = {nm: (A._SEEDS[nm] - A._NORM[nm][0]) / A._NORM[nm][1] for nm in A.ATTRACTORS}
+    hstep = {nm: A.ATTRACTORS[nm][1] * A._NORM[nm][2] / A._NORM[nm][1] for nm in A.ATTRACTORS}
+    U = seeds[home_att][rng.integers(0, len(seeds[home_att]), n)].copy()
+    homebound = np.arange(n) < int(n * home_share)
+    captured = np.ones(n, bool)
+    hist, shots = [], {}
     keys12 = [J.practical_key(J.KEY_NAMES[(cl.harmony.pc(key) + i) % 12]) for i in range(12)]
-    last_local = key
+    last_local, att = key, home_att
+    centre = np.tile(key_place(key, key), (n, 1))
+    X = centre + U * size
     for bar in range(1, s.chorus_bars + 1):
         p, chord = per_bar[bar]
         local = p['local']
         tension, _ = J.tension(key, local, chord.symbol.split('/')[0], depth=p['depth'])
         tn = min(1.0, 0.15 + tension / 7.0)
-        pa, ph = key_place(local, key), key_place(key, key)
-        if local != last_local:                               # the travellers let go and head for the new key
+        if local != last_local:
             captured[~homebound] = False
-            last_local = local
+            last_local, att = local, A.attractor_for(key, local)
+        pa, ph = key_place(local, key), key_place(key, key)
         centre = np.where(homebound[:, None], ph, pa)
-        tl = np.where(homebound, 0.2, tn)
         for fr in range(frames_per_bar):
             for _ in range(3):
                 U = (X - centre) / size
                 d = np.linalg.norm(U, axis=1)
-                arrive = (~captured) & (d < 1.0)              # arriving: dissolve into the attractor
+                arrive = (~captured) & (d < 1.0)
                 if arrive.any():
-                    U[arrive] = seeds[rng.integers(0, len(seeds), arrive.sum())] * 0.9
+                    U[arrive] = seeds[att][rng.integers(0, len(seeds[att]), arrive.sum())] * 0.9
                     captured[arrive] = True
                 V = np.zeros_like(U)
-                for tv in np.unique(tl):
-                    m = captured & (tl == tv)
-                    if m.any():
-                        V[m] = A.field_u(name, U[m], tv)
+                hb = captured & homebound
+                tr = captured & ~homebound
+                if hb.any():
+                    V[hb] = A.field_u(home_att, U[hb], 0.2) * hstep[home_att]
+                if tr.any():
+                    V[tr] = A.field_u(att, U[tr], tn) * hstep[att]
                 st = ~captured
                 if st.any():
                     to = -U[st] / (d[st, None] + 1e-6)
                     swirl = np.stack([-to[:, 2], np.zeros(st.sum()), to[:, 0]], 1)
-                    V[st] = 2.5 * (to + 0.5 * swirl) + rng.normal(0, 0.4, (st.sum(), 3))
-                U = U + h * 1.6 * V
-                lost = captured & ((np.linalg.norm(U, axis=1) > 3.5) | ~np.isfinite(U).all(1))
-                if lost.any():
-                    U[lost] = seeds[rng.integers(0, len(seeds), lost.sum())]
+                    V[st] = 0.012 * (2.5 * (to + 0.5 * swirl) + rng.normal(0, 0.4, (st.sum(), 3)))
+                U = U + 1.6 * V
+                bad = captured & ((np.linalg.norm(U, axis=1) > 3.5) | ~np.isfinite(U).all(1))
+                if bad.any():
+                    which = np.where(homebound[bad], home_att, att)
+                    for nm in set(which):
+                        idx = np.where(bad)[0][which == nm]
+                        U[idx] = seeds[nm][rng.integers(0, len(seeds[nm]), len(idx))]
                 X = centre + U * size
-            trail.append(X.copy())
-            trail = trail[-30:]
+            hist.append(X.copy())
+            hist = hist[-trail_len:]
         if bar in bars_to_show:
-            shots[bar] = (np.array(trail), local, chord.symbol, p['role'], tension)
+            shots[bar] = (np.array(hist), local, chord.symbol, p['role'], tension, att)
     cell, cols = 560, 3
     rows = (len(bars_to_show) + cols - 1) // cols
     big = Image.new('RGB', (cell * cols, cell * rows + 46), (0, 0, 0))
     for i, bar in enumerate(bars_to_show):
-        T, local, sym, role, tension = shots[bar]
+        T, local, sym, role, tension, attname = shots[bar]
         img = np.zeros((cell, cell, 3))
         pa, ph = key_place(local, key), key_place(key, key)
         mid = (pa + ph) / 2
-        zoom = 0.42 / max(0.42, np.linalg.norm(pa - ph) / 2 + 0.3)     # frame home and the local key
+        zoom = 0.42 / max(0.42, np.linalg.norm(pa - ph) / 2 + 0.3)
 
         def view(P3):
             Q = (P3 - mid)[..., [0, 2, 1]] * np.array([1, -1, 1])
             return rot(Q, 0.0, -0.55)
-        P = T.reshape(-1, 3)
-        hb = np.tile(homebound, len(T))
-        V = view(P)
-        splat(img, V[hb][None], rgb(key) * 0.7, cell, scale=zoom, centre=(0.5, 0.5))
-        splat(img, V[~hb][None], rgb(local), cell, scale=zoom, centre=(0.5, 0.5))
-        im = Image.fromarray(tone(img, 0.035))
+        Vh = view(T)                                         # (frames, n, 2/3)
+        cols_ = [(homebound, rgb(key) * 0.7), (~homebound, rgb(local))]
+        for mask, col in cols_:
+            if style in ('trails', 'both'):
+                L = len(Vh)
+                for k in range(1, L):                        # segments, 4 samples each, fading with age
+                    a_, b_ = Vh[k - 1][mask], Vh[k][mask]
+                    w = (k / L) ** 1.5 * (0.5 if style == 'both' else 1.0)
+                    for f in (0.0, 0.25, 0.5, 0.75):
+                        splat(img, (a_ + (b_ - a_) * f)[None], col, cell, weight=w, scale=zoom)
+            if style in ('points', 'both'):
+                last = Vh[-1][mask]
+                for dx in (0.0, 0.6 / (cell * zoom)):
+                    for dy in (0.0, 0.6 / (cell * zoom)):
+                        splat(img, (last + np.array([dx, dy, 0]))[None], col, cell,
+                              weight=6.0 if style == 'points' else 4.0, scale=zoom)
+        im = Image.fromarray(tone(img, 0.035 if style != 'points' else 0.06))
         if with_stars:
             d = ImageDraw.Draw(im)
             for k in keys12:
@@ -180,10 +201,12 @@ def journey(name, chart_id, key, bars_to_show, out, n=3000, frames_per_bar=40, s
                 label(im, k, (u + 7, v + 4), 13)
         ox, oy = (i % cols) * cell, (i // cols) * cell + 46
         big.paste(im, (ox, oy))
-        label(big, 'bar %d   %s   %s   (%s)   tension %.1f' % (bar, sym, role or '', local, tension), (ox + 10, oy + 8), 15)
-    label(big, '%s through %s in %s - %s' % (name.capitalize(), s.chart['title'], key,
-                                              'with the stars' if with_stars else 'abstract'), (10, 10))
-    big.save(os.path.join(out, 'journey_%s_%s%s.png' % (name, chart_id, tag)))
+        label(big, 'bar %d   %s   %s   (%s: %s)   tension %.1f' % (bar, sym, role or '', local, attname, tension),
+              (ox + 10, oy + 8), 15)
+    label(big, '%s in %s - one attractor per role - %s%s' % (s.chart['title'], key, style,
+                                                             ', with the stars' if with_stars else ', abstract'),
+          (10, 10))
+    big.save(os.path.join(out, 'journey_%s_%s%s.png' % (chart_id, style, tag)))
 
 
 if __name__ == '__main__':
@@ -192,6 +215,7 @@ if __name__ == '__main__':
     if what in ('all', 'tension'):
         sheet_tension(out)
     if what in ('all', 'journey'):
-        journey('halvorsen', 'all_the_things_you_are', 'Ab', [4, 7, 12, 16, 23, 33], out)
-        journey('thomas', 'along_came_betty', 'Ab', [3, 5, 7, 10, 17, 33], out, with_stars=False, tag='_abstract')
+        for style in ('points', 'trails', 'both'):
+            journey('all_the_things_you_are', 'Ab', [4, 7, 12, 16, 23, 30], out, style=style)
+        journey('along_came_betty', 'Ab', [3, 5, 7, 10, 17, 25], out, style='both', with_stars=False, tag='_abstract')
     print('ok')
