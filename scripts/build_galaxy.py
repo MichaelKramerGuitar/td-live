@@ -169,7 +169,7 @@ sim.par.inputfiltertype = 'nearest'
 sim.par.outputresolution = 'useinput'
 sim.seq.vec.numBlocks = max(4, sim.seq.vec.numBlocks)
 for i, nm in enumerate(('uHome', 'uLocal', 'uSim', 'uStep')):
-    sim.par['vec%dname' % i] = nm
+    getattr(sim.par, 'vec%dname' % i).val = nm
 sim.par.vec3valuey = 3
 sim.par.vec3valuez.expr = 'parent().par.Simspeed'
 fb.par.top = sim.path
@@ -182,7 +182,7 @@ col.par.inputfiltertype = 'nearest'
 col.par.outputresolution = 'useinput'
 col.seq.vec.numBlocks = max(2, col.seq.vec.numBlocks)
 for i, nm in enumerate(('uHomeCol', 'uLocalCol')):
-    col.par['vec%dname' % i] = nm
+    getattr(col.par, 'vec%dname' % i).val = nm
 
 geo = ensure(G, geometryCOMP, 'att_geo', 1500, 150)
 for ch in list(geo.children):
