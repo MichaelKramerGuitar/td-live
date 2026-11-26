@@ -10,6 +10,8 @@ void main()
     vec4 viewPos = uTDMats[ci].cam * centre;
     viewPos.xy += P.xy * uPoint.x;
     gl_Position = uTDMats[ci].proj * viewPos;
-    vColor = TDInstanceColor(Cd);
+    // particles right in front of the lens fade out (the body cam rides inside the flow: no white-out)
+    float near = smoothstep(0.03, 0.25, -viewPos.z);
+    vColor = TDInstanceColor(Cd) * near;
     vQ = P.xy * 2.0;
 }
