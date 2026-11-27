@@ -447,7 +447,7 @@ def frame_update(G):
         fluid_update(G)
 
 
-FLUID_PASSES = ('fl_vel', 'fl_dye', 'fl_wave', 'fl_view')
+FLUID_PASSES = ('fl_vel', 'fl_dye', 'fl_wave', 'fl_view', 'fl_marksdraw')
 
 
 def fluid_update(G):

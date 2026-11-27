@@ -341,8 +341,8 @@ def fl_src(name):
 def fl_glsl(name, src, inputs, res, fmt='rgba32float', uniforms=False, x=3200, y=0):
     o = G.create(glslTOP, name)
     o.nodeX, o.nodeY = x, y
-    for inp in inputs:                                   # appends to the next free input, in order
-        inp.outputConnectors[0].connect(o)
+    for i, inp in enumerate(inputs):                     # (a new GLSL TOP offers scripts 3 inputs: keep to 3)
+        o.inputConnectors[i].connect(inp)
     o.par.pixeldat = src.path
     o.par.format = fmt
     o.par.outputresolution = 'custom'
@@ -404,8 +404,16 @@ wfb.inputConnectors[0].connect(fl_zero('fl_zero_wave', DYE_RES, 6150, 650))
 wave = fl_glsl('fl_wave', fl_src('wave'), [wfb, fbed], DYE_RES, uniforms=True, x=6450, y=650)
 wave.par.inputfiltertype = 'nearest'
 wfb.par.top = wave.path
-view = fl_glsl('fl_view', fl_src('view'), [dye, wave, proj, fmarks],
+view = fl_glsl('fl_view', fl_src('view'), [dye, wave, proj],
                ('op.Config.par.Width', 'op.Config.par.Height'), fmt='rgba8fixed', uniforms=True, x=6650, y=450)
+mk = fl_glsl('fl_marksdraw', fl_src('marks'), [fmarks],
+             ('op.Config.par.Width', 'op.Config.par.Height'), fmt='rgba8fixed', uniforms=True, x=6650, y=600)
+fsum = G.create(compositeTOP, 'fl_out')
+fsum.nodeX, fsum.nodeY = 6800, 500
+fsum.inputConnectors[0].connect(view)
+fsum.inputConnectors[1].connect(mk)
+fsum.par.operand = 'add'
+view = fsum
 
 for c_ in list(tsel.inputConnectors):
     c_.disconnect()
