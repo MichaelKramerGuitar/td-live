@@ -283,3 +283,133 @@ nx.text = ("# fills names_spec (re-cooking the names Text TOP), points the parti
            "        op('names').cook(force=True)\n"
            "        m.frame_update(parent())\n"
            "    return\n")
+
+# ---------------------------------------------------------------- the Fluid texture (ink in water, top-down)
+# A GPU fluid on the galaxy plane (stable fluids: advect -> forces -> pressure solve -> project), its ink, and the
+# bat's pings (a wave equation whose speed follows the depth of the harmony's creek bed). Python feeds the
+# traveller, its notes, the current and the bed each frame (world.fluid_update, fluid_tops.py).
+if not has(G, 'Fluidres'):
+    pg = page(G, 'Fluid')
+    pg.appendFloat('Fluidres', label='Simulation Resolution (fraction of the frame)')
+    pg.appendFloat('Dyeres', label='Ink Resolution (fraction of the frame)')
+    pg.appendFloat('Fluidspan', label='World Span (top to bottom)')
+    pg.appendMenu('Current', label='Background Current')
+    pg.appendFloat('Currentstrength', label='Current Strength')
+    pg.appendFloat('Viscosity', label='Viscosity (damping per frame)')
+    pg.appendFloat('Vorticity', label='Swirl (vorticity confinement)')
+    pg.appendFloat('Push', label='Traveller Push')
+    pg.appendFloat('Dyeamount', label='Ink Amount')
+    pg.appendFloat('Dyedecay', label='Ink Persistence (per frame)')
+    pg.appendFloat('Inkbright', label='Ink Brightness')
+    pg.appendFloat('Bed', label='Creek Bed (harmony landscape) Strength')
+    pg.appendFloat('Beddrag', label='Drag Over The Shallows')
+    pg.appendMenu('Pings', label='Pings (the bat)')
+    pg.appendFloat('Pingsize', label='Ping Strength')
+    pg.appendFloat('Wavespeed', label='Ping Speed')
+    for k, v in (('Fluidres', 0.2), ('Dyeres', 0.5), ('Fluidspan', 2.4), ('Currentstrength', 0.4),
+                 ('Viscosity', 0.004), ('Vorticity', 0.25), ('Push', 1.2), ('Dyeamount', 0.08),
+                 ('Dyedecay', 0.992), ('Inkbright', 1.2), ('Bed', 1.0), ('Beddrag', 0.04), ('Pingsize', 0.6),
+                 ('Wavespeed', 1.0)):
+        G.par[k] = v
+        G.par[k].default = v
+G.par.Current.menuNames = ['none', 'home', 'form']
+G.par.Current.menuLabels = ['None', 'Pull home (whirlpools at home and the local key)', 'The form (a stream turning with the chorus)']
+G.par.Pings.menuNames = ['every', 'long', 'off']
+G.par.Pings.menuLabels = ['Every note', 'Only long notes', 'Off']
+if G.par.Current.eval() not in ('none', 'home', 'form'):
+    G.par.Current = 'home'
+G.par.Texture.menuNames = ['lines', 'attractor', 'fluid']
+G.par.Texture.menuLabels = ['Lines (live-03)', 'Attractor', 'Fluid (ink in water)']
+
+FL = project.folder + '/modules/galaxy/fluid/'
+COMMON = open(FL + 'common.glsl', encoding='utf-8').read()
+UNIFORMS = ['uTrav', 'uInj', 'uDye', 'uFlow', 'uHome', 'uBed', 'uMisc']
+SIM_RES = ('int(op.Config.par.Width * parent().par.Fluidres)', 'int(op.Config.par.Height * parent().par.Fluidres)')
+DYE_RES = ('int(op.Config.par.Width * parent().par.Dyeres)', 'int(op.Config.par.Height * parent().par.Dyeres)')
+for old in [c for c in G.children if c.name.startswith('fl_')]:
+    old.destroy()
+
+
+def fl_src(name):
+    d = G.create(textDAT, 'fl_src_' + name)
+    d.nodeX, d.nodeY = 3000, -200 - 60 * len([c for c in G.children if c.name.startswith('fl_src_')])
+    d.text = open(FL + name + '.frag', encoding='utf-8').read().replace('//@COMMON', COMMON)
+    return d
+
+
+def fl_glsl(name, src, inputs, res, fmt='rgba32float', uniforms=False, x=3200, y=0):
+    o = G.create(glslTOP, name)
+    o.nodeX, o.nodeY = x, y
+    for i, inp in enumerate(inputs):
+        o.inputConnectors[i].connect(inp)
+    o.par.pixeldat = src.path
+    o.par.format = fmt
+    o.par.outputresolution = 'custom'
+    o.par.resolutionw.expr, o.par.resolutionh.expr = res
+    o.par.inputfiltertype = 'linear'
+    if uniforms:
+        o.seq.vec.numBlocks = max(len(UNIFORMS), o.seq.vec.numBlocks)
+        for i, un in enumerate(UNIFORMS):
+            getattr(o.par, 'vec%dname' % i).val = un
+    return o
+
+
+def fl_zero(name, res, x, y):
+    z = G.create(constantTOP, name)
+    z.nodeX, z.nodeY = x, y
+    z.par.format = 'rgba32float'
+    z.par.outputresolution = 'custom'
+    z.par.resolutionw.expr, z.par.resolutionh.expr = res
+    z.par.colorr = z.par.colorg = z.par.colorb = 0.0
+    z.par.alpha = 1.0
+    return z
+
+
+fbed = G.create(scriptTOP, 'fl_bed')
+fbed.nodeX, fbed.nodeY = 3200, 400
+ftcb = synced(G, textDAT, 'fl_tops_callbacks', 'modules/galaxy/fluid_tops.py', 3000, 400)
+fbed.par.callbacks = ftcb.path
+fbed.par.format = 'rgba32float'
+fmarks = G.create(scriptTOP, 'fl_marks')
+fmarks.nodeX, fmarks.nodeY = 3200, 550
+fmarks.par.callbacks = ftcb.path
+fmarks.par.format = 'rgba32float'
+
+vfb = G.create(feedbackTOP, 'fl_vel_fb')
+vfb.nodeX, vfb.nodeY = 3200, 250
+vfb.inputConnectors[0].connect(fl_zero('fl_zero_sim', SIM_RES, 3050, 250))
+curl = fl_glsl('fl_curl', fl_src('curl'), [vfb], SIM_RES, x=3350, y=300)
+vel = fl_glsl('fl_vel', fl_src('velocity'), [vfb, curl, fbed], SIM_RES, uniforms=True, x=3500, y=250)
+div = fl_glsl('fl_div', fl_src('divergence'), [vel], SIM_RES, x=3650, y=250)
+pfb = G.create(feedbackTOP, 'fl_p_fb')
+pfb.nodeX, pfb.nodeY = 3650, 100
+pfb.inputConnectors[0].connect(fl_zero('fl_zero_p', SIM_RES, 3500, 100))
+jsrc = fl_src('jacobi')
+prev = pfb
+for i in range(20):
+    prev = fl_glsl('fl_jacobi%02d' % i, jsrc, [prev, div], SIM_RES, x=3800 + 120 * i, y=100)
+pfb.par.top = prev.path
+proj = fl_glsl('fl_proj', fl_src('project'), [vel, prev], SIM_RES, x=6300, y=250)
+vfb.par.top = proj.path
+
+dfb = G.create(feedbackTOP, 'fl_dye_fb')
+dfb.nodeX, dfb.nodeY = 6300, 450
+dfb.inputConnectors[0].connect(fl_zero('fl_zero_dye', DYE_RES, 6150, 450))
+dye = fl_glsl('fl_dye', fl_src('dye'), [dfb, proj], DYE_RES, fmt='rgba16float', uniforms=True, x=6450, y=450)
+dfb.par.top = dye.path
+wfb = G.create(feedbackTOP, 'fl_wave_fb')
+wfb.nodeX, wfb.nodeY = 6300, 650
+wfb.inputConnectors[0].connect(fl_zero('fl_zero_wave', DYE_RES, 6150, 650))
+wave = fl_glsl('fl_wave', fl_src('wave'), [wfb, fbed], DYE_RES, uniforms=True, x=6450, y=650)
+wave.par.inputfiltertype = 'nearest'
+wfb.par.top = wave.path
+view = fl_glsl('fl_view', fl_src('view'), [dye, wave, proj, fmarks],
+               ('op.Config.par.Width', 'op.Config.par.Height'), fmt='rgba8fixed', uniforms=True, x=6650, y=450)
+
+for c_ in list(tsel.inputConnectors):
+    c_.disconnect()
+tsel.inputConnectors[0].connect(add)
+tsel.inputConnectors[1].connect(asel)
+tsel.inputConnectors[2].connect(view)
+tsel.par.index.expr = "{'lines': 0, 'attractor': 1, 'fluid': 2}.get(parent().par.Texture.eval(), 0)"
+nm.par.fontalpha.expr = "0.85 if parent().par.Names and parent().par.Texture != 'fluid' else 0.0"

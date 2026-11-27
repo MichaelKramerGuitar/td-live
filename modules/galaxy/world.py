@@ -386,6 +386,15 @@ def onCook(scriptOp):
     _MEM['names'] = names if L.par.Names.eval() else []
     _MEM['info'] = (info, cur, local)
     _MEM['camspec'] = (cam.eye, cam.r, cam.u, cam.f, cam.fov)
+    _MEM['wells'] = W
+    mk = []
+    for pcn in range(12):
+        k_ = j.practical_key(j.KEY_NAMES[(h.pc(home) + pcn) % 12])
+        x_, z_ = key_place(k_, home)
+        mk.append((x_, z_, 0.012 if k_ == home else 0.009 if k_ == local else 0.005,
+                   1.0 if k_ in (home, local) else 0.45, colour(k_)))
+    mk.append((c[0], c[2], 0.006, 1.0, (1.0, 0.97, 0.9)))
+    _MEM['marks'] = mk
     # the Attractor texture: which attractor each key area holds, where, how wild (frame_update sends it on)
     import attractors as AT
     if _MEM.get('sim_local') != local:
@@ -434,6 +443,75 @@ def frame_update(G):
     cl_.par.vec0valuew = G.par.Particlebright.eval()
     cl_.par.vec1valuex, cl_.par.vec1valuey, cl_.par.vec1valuez = sim['localcol']
     cl_.par.vec1valuew = G.par.Homeshare.eval()
+    if G.par.Texture.eval() == 'fluid':
+        fluid_update(G)
+
+
+FLUID_PASSES = ('fl_vel', 'fl_dye', 'fl_wave', 'fl_view')
+
+
+def fluid_update(G):
+    """Every frame: the traveller, its notes (pulses and pings), the current, the bed -> the fluid passes."""
+    import time as _t
+    sim = _MEM.get('sim')
+    c = _MEM.get('comet')
+    if sim is None or c is None:
+        return
+    span = G.par.Fluidspan.eval()
+    aspect = op.Config.par.Width.eval() / max(1.0, op.Config.par.Height.eval())
+    to_uv = lambda x, z: (x / (span * aspect) + 0.5, z / span + 0.5)
+    tu, tv = to_uv(c[0], c[2])
+    hd = _MEM.get('heading') or (0.0, 1.0)
+    # notes: onset -> pulse; pings every note / only long notes / off
+    a = op.Analysis.op('out')
+    try:
+        clar, lev, midi = a['clarity'].eval(), a['level'].eval(), a['midi'].eval()
+    except Exception:
+        clar, lev, midi = 0, 0, 0
+    now = _t.time()
+    fn = _MEM.setdefault('fnote', {'pc': None, 't0': 0.0, 'pinged': False, 'lev': 0.0})
+    pulse, ping, notecol = 0.0, 0.0, None
+    if clar >= G.par.Whispclarity.eval() and lev > 0.04 and midi > 0:
+        pc = int(round(midi)) % 12
+        onset = pc != fn['pc'] or lev > fn['lev'] * 1.6 + 0.05
+        if onset:
+            fn.update(pc=pc, t0=now, pinged=False)
+            pulse = 1.0
+        mode = G.par.Pings.eval()
+        if not fn['pinged'] and (mode == 'every' and onset or mode == 'long' and now - fn['t0'] > 0.3):
+            ping, fn['pinged'] = G.par.Pingsize.eval(), True
+        tones = op.Song.op('tones')
+        import harmony as h
+        names = {h.pc(r[0].val): r[0].val for r in tones.rows()[1:]} if tones.numRows > 1 else {}
+        nm = names.get(pc) or ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'][pc]
+        notecol = colour(nm)
+    else:
+        fn['pc'] = None
+    fn['lev'] = lev
+    dye = notecol or tuple(0.35 * x for x in sim['localcol'])
+    clk = op.Song.op('out')
+    s = E().song()
+    form_pos = 0.0
+    if s is not None and clk['playing'].eval() > 0.5:
+        form_pos = (clk['bar'].eval() - 1 + clk['bar_phase'].eval()) / max(1, s.chorus_bars)
+    hu, hv = to_uv(0.0, 0.0)
+    lx, lz = sim['local'][0], sim['local'][2]
+    lu, lv = to_uv(lx, lz)
+    cur = {'none': 0, 'home': 1, 'form': 2}[G.par.Current.eval()]
+    vals = {
+        'uTrav': (tu, tv, hd[0], hd[1]),
+        'uInj': (G.par.Push.eval(), G.par.Dyeamount.eval() * (1.0 if notecol else 0.4), 0.035, pulse),
+        'uDye': (dye[0], dye[1], dye[2], G.par.Dyedecay.eval()),
+        'uFlow': (cur, G.par.Currentstrength.eval(), form_pos * 6.2831853, G.par.Viscosity.eval()),
+        'uHome': (hu, hv, lu, lv),
+        'uBed': (G.par.Bed.eval(), G.par.Beddrag.eval() * G.par.Bed.eval(), G.par.Wavespeed.eval(), ping),
+        'uMisc': (G.par.Vorticity.eval(), aspect, now % 1000.0, G.par.Inkbright.eval()),
+    }
+    for name in FLUID_PASSES:
+        o = G.op(name)
+        for i, (un, v) in enumerate(vals.items()):
+            for k, x in zip('xyzw', v):
+                getattr(o.par, 'vec%dvalue%s' % (i, k)).val = x
 
 
 def draw_whisp(P, cam, c, t, L):
