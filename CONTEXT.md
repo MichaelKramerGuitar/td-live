@@ -201,4 +201,10 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   pings every / long / off, current none / pull home / the form). ~30 fps; fluid GPU ~2 ms. Lessons: a new GLSL
   TOP offers scripts only 3 input connectors; in a texture where nothing on screen pulls the world Script TOP it
   doesn't cook (cook it from the frame tick); keep cross-module state in COMP storage. Image 2 (medium) next.
+- **2026-11-27 — session 6b.** Beatrice (Sam Rivers) from Michael's changes, nodes and hearing (16 bars, F).
+  "Gestural function" (Michael): root motion and voice leading carry function when the quality doesn't (Dameron's
+  Lady Bird turnaround; Beatrice's Gbmaj7#11 -> Fmaj7, Ebmaj7 -> D-7, the D-7 C-7 Bb-7 A-7 line):
+  `journey.gestural(chord, next, prev)` -> subV / V / line, softened when not a dominant 7. Fluid: a drain into
+  home's whirlpool (the pressure solve targets edge sources + a home sink) and background ink: off / grey / a
+  muted, slowly shifting shade of the current chord root.
 
