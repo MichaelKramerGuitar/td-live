@@ -327,7 +327,8 @@ UNIFORMS = ['uTrav', 'uInj', 'uDye', 'uFlow', 'uHome', 'uBed', 'uMisc']
 SIM_RES = ('int(op.Config.par.Width * parent().par.Fluidres)', 'int(op.Config.par.Height * parent().par.Fluidres)')
 DYE_RES = ('int(op.Config.par.Width * parent().par.Dyeres)', 'int(op.Config.par.Height * parent().par.Dyeres)')
 for old in [c for c in G.children if c.name.startswith('fl_')]:
-    old.destroy()
+    if old.valid:                                        # (docked DATs go with their GLSL TOP)
+        old.destroy()
 
 
 def fl_src(name):
