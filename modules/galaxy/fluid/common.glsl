@@ -7,3 +7,5 @@ uniform vec4 uFlow;   // x current mode (0 none, 1 pull home, 2 the form), y str
 uniform vec4 uHome;   // xy home (uv), zw local key (uv)
 uniform vec4 uBed;    // x bed slope force, y drag over shallows, z wave speed, w ping amplitude (0 = no ping)
 uniform vec4 uMisc;   // x vorticity confinement, y aspect (w/h), z time, w ink brightness
+uniform vec4 uBg;     // rgb background ink colour (grey, or a muted shade of the harmony), w amount (0 = none)
+uniform vec4 uSink;   // x drain strength (water enters at the edges, drains into home's whirlpool)

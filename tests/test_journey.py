@@ -99,3 +99,20 @@ def test_journey_plan_reads_michaels_roles():
     assert bp[5] == ['A'] and bp[9] == ['E']        # Amaj13 arrives; A2 is about E (ii/#V)
     assert bp[8] == ['G']                            # 'imperfect cadence' is not a numeral: G carries on
     assert j._PLAIN.match('iv6') and j._PLAIN.match('VI7') and not j._PLAIN.match('imperfect')
+
+
+def test_beatrice_and_gestural_function():
+    import chartlib as cl
+    import formclock as fc
+    import harmony as h
+    s = fc.Song(cl.load_chart(os.path.join(cl.ROOT, 'charts', 'beatrice.yaml')), key='F')
+    assert cl.check_chart(s.chart) == []
+    syms = [e[2].symbol for e in s.events]
+    assert syms[:4] == ['Fmaj7', 'Gbmaj7#11', 'Fmaj7', 'Ebmaj7'] and 'A7b9' in syms
+    # Lady Bird (Dameron): Cmaj7 Ebmaj7 Abmaj7 Dbmaj7 -> each gestures as a softened dominant
+    c = [h.chord(x) for x in ('Cmaj7', 'Ebmaj7', 'Abmaj7', 'Dbmaj7', 'Cmaj7')]
+    assert j.gestural(c[1], c[2]) == ('V', True) and j.gestural(c[3], c[4]) == ('subV', True)
+    assert j.gestural(h.chord('Gbmaj7#11'), h.chord('Fmaj7')) == ('subV', True)
+    assert j.gestural(h.chord('Db7'), h.chord('Cmaj7')) == ('subV', False)
+    line = [h.chord(x) for x in ('D-7', 'C-7', 'Bb-7', 'A-7')]
+    assert j.gestural(line[1], line[2], line[0])[0] == 'line'

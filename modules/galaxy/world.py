@@ -449,7 +449,27 @@ def frame_update(G):
         fluid_update(G)
 
 
-FLUID_PASSES = ('fl_vel', 'fl_dye', 'fl_wave', 'fl_view', 'fl_marksdraw')
+FLUID_PASSES = ('fl_vel', 'fl_div', 'fl_dye', 'fl_wave', 'fl_view', 'fl_marksdraw')
+
+
+def background_ink(G, sim):
+    """The water flowing in toward the whirlpool: grey, or a muted shade of the current harmony that shifts slowly
+    (the chord root's palette colour, desaturated and dimmed, eased over a couple of seconds)."""
+    mode = G.par.Bgink.eval()
+    if mode == 'off':
+        return (0.0, 0.0, 0.0, 0.0)
+    if mode == 'grey':
+        target = (0.5, 0.5, 0.52)
+    else:
+        info = _MEM.get('info')
+        root = info[1].root if info else None
+        c = colour(root) if root else sim['localcol']
+        grey = sum(c) / 3.0
+        target = tuple(0.55 * (grey + 0.45 * (x - grey)) for x in c)          # 45% saturation, dimmed
+    cur = _MEM.get('bgcol') or target
+    cur = tuple(cur[i] + (target[i] - cur[i]) * 0.02 for i in range(3))
+    _MEM['bgcol'] = cur
+    return (cur[0], cur[1], cur[2], G.par.Bgamount.eval())
 
 
 def fluid_update(G):
@@ -510,6 +530,8 @@ def fluid_update(G):
         'uHome': (hu, hv, lu, lv),
         'uBed': (G.par.Bed.eval(), G.par.Beddrag.eval() * G.par.Bed.eval(), G.par.Wavespeed.eval(), ping),
         'uMisc': (G.par.Vorticity.eval(), aspect, now % 1000.0, G.par.Inkbright.eval()),
+        'uBg': background_ink(G, sim),
+        'uSink': (G.par.Drain.eval() if cur == 1 else 0.0, 0.0, 0.0, 0.0),
     }
     for name in FLUID_PASSES:
         o = G.op(name)

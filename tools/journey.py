@@ -177,3 +177,28 @@ def journey_plan(song):
             local, minor = song.key, False
         out.append({'role': role, 'local': local, 'minor': minor, 'depth': depth})
     return out
+
+
+# ---------------------------------------------------------------- gestural function (Michael, 2026-11-27)
+# When the key elements are evoked, not every rule has to be followed for the ear to hear tension and release:
+# root movement and voice leading carry the function even when the chord quality doesn't (Tadd Dameron's Lady
+# Bird turnaround: I VI7 II7 V7 -> C Eb7 Ab7 Db7 -> Cmaj7 Ebmaj7 Abmaj7 Dbmaj7; Sam Rivers' Beatrice:
+# Gbmaj7#11 -> Fmaj7, Ebmaj7 -> D-7, and the falling line D-7 C-7 Bb-7 A-7).
+def gestural(chord, next_chord, prev_chord=None):
+    """How a chord gestures toward the next one by root movement alone (whatever its quality):
+    'subV'  - root a half step above the next root (the tritone-sub dominant's motion)
+    'V'     - root a fifth above the next root (the dominant's motion)
+    'line'  - part of a stepwise run of same-quality chords (a directional line)
+    ''      - none of these. Returns (kind, is_softened): softened = the quality isn't a dominant 7."""
+    d = (h.pc(chord.root) - h.pc(next_chord.root)) % 12
+    dominant = chord.quality.startswith('7') or chord.quality in ('9', '13', '7b9', '7alt')
+    if d == 1:
+        return 'subV', not dominant
+    if d == 7:
+        return 'V', not dominant
+    if prev_chord is not None:
+        same = chord.quality == next_chord.quality == prev_chord.quality
+        steps = {(h.pc(prev_chord.root) - h.pc(chord.root)) % 12, (h.pc(chord.root) - h.pc(next_chord.root)) % 12}
+        if same and steps <= {1, 2} or same and steps <= {10, 11}:
+            return 'line', False
+    return '', False

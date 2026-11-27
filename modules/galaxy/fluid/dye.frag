@@ -12,5 +12,10 @@ void main()
     vec2 t = (uv - uTrav.xy) * vec2(uMisc.y, 1.0);
     float g = exp(-dot(t, t) / (uInj.z * uInj.z * 0.5));
     d += uDye.rgb * g * (uInj.y + 2.0 * uInj.w);
+    // background ink: a faint, streaky supply along the edges that the flow carries in (grey or the harmony's shade)
+    float edge = smoothstep(0.05, 0.0, min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y)));
+    vec2 hd = (uv - uHome.xy) * vec2(uMisc.y, 1.0);
+    float streak = 0.5 + 0.5 * sin(atan(hd.y, hd.x) * 23.0 + uMisc.z * 0.4) * sin(atan(hd.y, hd.x) * 7.0 - uMisc.z * 0.23);
+    d += uBg.rgb * uBg.w * edge * streak;
     fragColor = vec4(d, 1.0);
 }

@@ -1,0 +1,91 @@
+# Beatrice - Sam Rivers (1964). Michael's changes, melodic nodes and hearing (2026-11-27), written in F and
+# stored key-free. A mix of functional and "gestural" harmony: major-7 chords sitting where dominants would be
+# (Gbmaj7#11 -> Fmaj7, Ebmaj7 -> D-7) and a minor-7 line falling with a strong directional pull (D-7 C-7 Bb-7 A-7).
+# Form: 16 bars.
+schema: tdlive-chart/0.2
+id: beatrice
+title: Beatrice
+composer: Sam Rivers
+status: playable
+changes_notation: roman
+default_key: F
+tempo: { bpm: 160 }
+
+rhythm:
+  meter: { beats: 4, unit: 4 }
+  accents: [2, 4]
+  feel: swing
+
+pitch:
+  melodic_nodes: []
+  harmonies: []
+
+form:
+  sections:
+    - { name: A, shape: 16 }
+  order: [A]
+
+changes:
+  A:
+    - [[Imaj7, 4]]                     # Fmaj7
+    - [[bIImaj7#11, 4]]                # Gbmaj7#11
+    - [[Imaj7, 4]]                     # Fmaj7
+    - [[bVIImaj7, 4]]                  # Ebmaj7
+    - [[vi-7, 4]]                      # D-7
+    - [[bVIImaj7, 4]]                  # Ebmaj7
+    - [[vi-7, 2], [v-7, 2]]            # D-7 C-7
+    - [[iv-7, 4]]                      # Bb-7
+    - [[iii-7, 4]]                     # A-7
+    - [[IVmaj7, 4]]                    # Bbmaj7
+    - [[viiø7, 2], [III7b9, 2]]        # E-7b5 A7b9
+    - [[vi-7, 4]]                      # D-7
+    - [[ii-7, 4]]                      # G-7
+    - [[bIImaj7, 4]]                   # Gbmaj7
+    - [[i-7, 4]]                       # F-7
+    - [[bIImaj7, 4]]                   # Gbmaj7
+
+melody:                                # degrees of F; null = carry on
+  A:
+    - "5"                              # C
+    - "1"                              # F
+    - "5"                              # C
+    - ["1", "2"]                       # F and G (both over Ebmaj7)
+    - "1"                              # F
+    - "5"                              # C
+    - "1"                              # F (over D-7 C-7)
+    - "5"                              # C
+    - "3"                              # A
+    - "1"                              # F
+    - ["3", "2"]                       # A over E-7b5, G over A7b9
+    - "1"                              # F
+    - "1"                              # F
+    - "1"                              # F
+    - "5"                              # C
+    - "1"                              # F
+
+analysis:
+  home: I
+  notes:
+    - "Gestural function (Michael): when the key elements are evoked, not every rule has to be followed for the
+      ear to hear functional tension and release. Root movement and voice leading carry it. Derivation: Tadd
+      Dameron's Lady Bird turnaround: I VI7 II7 V7 -> tritone-substitute all but I (C Eb7 Ab7 Db7) -> make them
+      all major 7 (Cmaj7 Ebmaj7 Abmaj7 Dbmaj7): softened function, still pleasing voice leading, strong roots."
+    - "Gbmaj7#11 -> Fmaj7 and Ebmaj7 -> D-7: a major 7 sitting where the (tritone-sub) dominant would be."
+    - "D-7 C-7 Bb-7 A-7: the same spirit with minor 7s: going from D-7 to A-7 with a strong directional pull."
+  A:
+    - [I]
+    - ["gestural subV/I (bIImaj7#11 for the dominant)"]
+    - [I]
+    - ["gestural subV/vi (bVIImaj7 -> vi)"]
+    - [vi]
+    - ["gestural subV/vi (bVIImaj7 -> vi)"]
+    - ["gestural line (D-7 > A-7)", "gestural line"]
+    - ["gestural line"]
+    - ["iii (end of the line)"]
+    - [IV]
+    - [ii/vi, V/vi]
+    - [vi]
+    - [ii]
+    - ["gestural subV/I"]
+    - ["i (minor tonic)"]
+    - ["gestural subV/I (turnaround)"]

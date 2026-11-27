@@ -313,6 +313,17 @@ if not has(G, 'Fluidres'):
                  ('Wavespeed', 1.0)):
         G.par[k] = v
         G.par[k].default = v
+if not has(G, 'Drain'):
+    pg = page(G, 'Fluid')
+    pg.appendFloat('Drain', label='Drain Into The Whirlpool (pull home)')
+    pg.appendMenu('Bgink', label='Background Ink')
+    pg.appendFloat('Bgamount', label='Background Ink Amount')
+    G.par.Drain, G.par.Bgamount = 0.5, 0.02
+    G.par.Drain.default, G.par.Bgamount.default = 0.5, 0.02
+G.par.Bgink.menuNames = ['off', 'grey', 'harmony']
+G.par.Bgink.menuLabels = ['Off', 'Grey', 'A muted shade of the harmony (shifting)']
+if G.par.Bgink.eval() not in ('off', 'grey', 'harmony'):
+    G.par.Bgink = 'harmony'
 G.par.Current.menuNames = ['none', 'home', 'form']
 G.par.Current.menuLabels = ['None', 'Pull home (whirlpools at home and the local key)', 'The form (a stream turning with the chorus)']
 G.par.Pings.menuNames = ['every', 'long', 'off']
@@ -324,7 +335,7 @@ G.par.Texture.menuLabels = ['Lines (live-03)', 'Attractor', 'Fluid (ink in water
 
 FL = project.folder + '/modules/galaxy/fluid/'
 COMMON = open(FL + 'common.glsl', encoding='utf-8').read()
-UNIFORMS = ['uTrav', 'uInj', 'uDye', 'uFlow', 'uHome', 'uBed', 'uMisc']
+UNIFORMS = ['uTrav', 'uInj', 'uDye', 'uFlow', 'uHome', 'uBed', 'uMisc', 'uBg', 'uSink']
 SIM_RES = ('int(op.Config.par.Width * parent().par.Fluidres)', 'int(op.Config.par.Height * parent().par.Fluidres)')
 DYE_RES = ('int(op.Config.par.Width * parent().par.Dyeres)', 'int(op.Config.par.Height * parent().par.Dyeres)')
 for old in [c for c in G.children if c.name.startswith('fl_')]:
@@ -382,7 +393,7 @@ vfb.nodeX, vfb.nodeY = 3200, 250
 vfb.inputConnectors[0].connect(fl_zero('fl_zero_sim', SIM_RES, 3050, 250))
 curl = fl_glsl('fl_curl', fl_src('curl'), [vfb], SIM_RES, x=3350, y=300)
 vel = fl_glsl('fl_vel', fl_src('velocity'), [vfb, curl, fbed], SIM_RES, uniforms=True, x=3500, y=250)
-div = fl_glsl('fl_div', fl_src('divergence'), [vel], SIM_RES, x=3650, y=250)
+div = fl_glsl('fl_div', fl_src('divergence'), [vel], SIM_RES, uniforms=True, x=3650, y=250)
 pfb = G.create(feedbackTOP, 'fl_p_fb')
 pfb.nodeX, pfb.nodeY = 3650, 100
 pfb.inputConnectors[0].connect(fl_zero('fl_zero_p', SIM_RES, 3500, 100))
