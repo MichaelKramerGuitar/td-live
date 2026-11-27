@@ -208,3 +208,6 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   home's whirlpool (the pressure solve targets edge sources + a home sink) and background ink: off / grey / a
   muted, slowly shifting shade of the current chord root.
 
+- **2026-11-27 — release live-05 (Fluid).** Michael played the fluid: "BY FAR the most interactive feeling duo
+  partner", and it evoked Hawking radiation: the harmony nodes as moving black holes, the melody "coming off"
+  them. Keep that image for Image 2 (harmony as the medium). Notes: docs/releases/live-05-fluid.md.
