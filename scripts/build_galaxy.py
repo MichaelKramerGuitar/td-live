@@ -340,8 +340,8 @@ def fl_src(name):
 def fl_glsl(name, src, inputs, res, fmt='rgba32float', uniforms=False, x=3200, y=0):
     o = G.create(glslTOP, name)
     o.nodeX, o.nodeY = x, y
-    for i, inp in enumerate(inputs):
-        o.inputConnectors[i].connect(inp)
+    for inp in inputs:                                   # appends to the next free input, in order
+        inp.outputConnectors[0].connect(o)
     o.par.pixeldat = src.path
     o.par.format = fmt
     o.par.outputresolution = 'custom'
