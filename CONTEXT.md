@@ -191,4 +191,14 @@ process story and a sign-up; short cuts for Reels; Claude can help in the browse
   with everything on. Lessons: `par['name'] = x` doesn't set built-in pars (use getattr(...).val); a loop
   variable named like an operator variable silently breaks later wiring; size GLSL uniform blocks via
   op.seq.vec.numBlocks first.
+- **2026-11-27 — session 6.** Fluid texture, first pass (Michael's two images: harmony as the creek bed the
+  melody flows over / harmony as the medium's properties the melody pushes against; looks: ink first, then water
+  surface and smoke; current and pings configurable; flat top-down first, draped later). GPU stable fluids in
+  `modules/galaxy/fluid/*.frag` (build inlines `common.glsl`): velocity (advect + vorticity confinement + current
+  + bed + traveller push + note bursts), divergence, 20 Jacobi pressure passes, projection, ink, the bat's pings
+  (wave equation, speed ~ sqrt(depth of the harmony bed)), view (ripple refraction), star marks. Python:
+  `fluid_tops.py` (bed height map from the galaxy wells, marks), `world.fluid_update` (uniforms, note onsets,
+  pings every / long / off, current none / pull home / the form). ~30 fps; fluid GPU ~2 ms. Lessons: a new GLSL
+  TOP offers scripts only 3 input connectors; in a texture where nothing on screen pulls the world Script TOP it
+  doesn't cook (cook it from the frame tick); keep cross-module state in COMP storage. Image 2 (medium) next.
 
