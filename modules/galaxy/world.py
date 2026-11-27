@@ -21,7 +21,9 @@ import numpy as np
 
 MAXP = 2048
 GRID_N, GRID_S, EXTENT = 13, 26, 1.2
-_MEM = {'sig': None, 'plan': None, 'comet': None, 'trail': [], 'local_w': {}, 'names': [], 'cam': None}
+# One shared memory for every copy of this module (the Script TOP and the per-frame link can hold separate copies
+# after a reload): it lives in the galaxy COMP's storage.
+_MEM = op.Visuals.op('galaxy').storage.setdefault('galaxy_mem', {'sig': None, 'plan': None, 'comet': None, 'trail': [], 'local_w': {}, 'names': [], 'cam': None})
 
 
 def onSetupParameters(scriptOp):
