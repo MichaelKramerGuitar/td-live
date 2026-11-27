@@ -468,6 +468,8 @@ def fluid_update(G):
         clar, lev, midi = a['clarity'].eval(), a['level'].eval(), a['midi'].eval()
     except Exception:
         clar, lev, midi = 0, 0, 0
+    if _MEM.get('fake_midi'):                          # testing without a guitar: a note set from outside
+        clar, lev, midi = 1.0, 0.5, _MEM['fake_midi']
     now = _t.time()
     fn = _MEM.setdefault('fnote', {'pc': None, 't0': 0.0, 'pinged': False, 'lev': 0.0})
     pulse, ping, notecol = 0.0, 0.0, None
