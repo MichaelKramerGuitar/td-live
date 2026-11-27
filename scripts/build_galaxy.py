@@ -279,6 +279,7 @@ nx.text = ("# fills names_spec (re-cooking the names Text TOP), points the parti
            "def onFrameStart(frame):\n"
            "    if op.Show.par.Mode == 'galaxy':\n"
            "        m = op('world_callbacks').module\n"
+           "        op('prims').cook(force=True)   # (nothing on screen pulls it in the Fluid texture)\n"
            "        m.names_table(op('names_spec'))\n"
            "        op('names').cook(force=True)\n"
            "        m.frame_update(parent())\n"
