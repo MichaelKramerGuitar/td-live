@@ -308,8 +308,8 @@ if not has(G, 'Fluidres'):
     pg.appendFloat('Pingsize', label='Ping Strength')
     pg.appendFloat('Wavespeed', label='Ping Speed')
     for k, v in (('Fluidres', 0.2), ('Dyeres', 0.5), ('Fluidspan', 2.4), ('Currentstrength', 0.4),
-                 ('Viscosity', 0.004), ('Vorticity', 0.25), ('Push', 1.2), ('Dyeamount', 0.08),
-                 ('Dyedecay', 0.992), ('Inkbright', 1.2), ('Bed', 1.0), ('Beddrag', 0.04), ('Pingsize', 0.6),
+                 ('Viscosity', 0.004), ('Vorticity', 0.12), ('Push', 1.2), ('Dyeamount', 0.025),
+                 ('Dyedecay', 0.985), ('Inkbright', 1.0), ('Bed', 1.0), ('Beddrag', 0.04), ('Pingsize', 0.6),
                  ('Wavespeed', 1.0)):
         G.par[k] = v
         G.par[k].default = v
